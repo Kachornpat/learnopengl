@@ -56,6 +56,9 @@ int main()
 
 	int vertexColorLocation = glGetUniformLocation(shader.ID, "ourColor");
 
+	unsigned int texture;
+	glGenTextures(1, &texture);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
