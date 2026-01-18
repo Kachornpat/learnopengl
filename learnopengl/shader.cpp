@@ -66,23 +66,24 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 			infoLog << std::endl;
 	}
 
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	ID = shaderProgram;
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, fragmentShader);
+	glLinkProgram(ID);
 
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	glGetProgramiv(ID, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetShaderInfoLog(ID, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINK_FAILED\n" <<
 			infoLog << std::endl;
 	}
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-	glUseProgram(shaderProgram);
 
+}
+
+void Shader::use() const{
+	glUseProgram(ID);
 }
