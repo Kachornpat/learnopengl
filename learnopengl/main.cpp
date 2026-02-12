@@ -186,6 +186,7 @@ int main()
 		shader.use();
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 1.0f, 2.0f * sin(glfwGetTime()));
 		shader.setUniformfv("lightPos", lightPos);
+		shader.setUniformfv("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
 		glm::mat4 model(1.0f);
