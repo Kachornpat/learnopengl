@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 
 class Shader
 {
@@ -17,8 +18,9 @@ public:
 	void updateModel(glm::mat4 model) const;
 	void updateView(glm::mat4 view) const;
 	void updateProjection(glm::mat4 projection) const;
-	void setVec3f();
-	void setMat4f();
+	void setUniformfv(std::string uniform, glm::vec3 vector);
+	void setUniformMatfv(std::string uniform, glm::mat4 trans);
+	void setUniformMatfv(std::string uniform, glm::mat3 trans);
 	void use() const;
 };
 

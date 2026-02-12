@@ -163,19 +163,6 @@ int main()
 	glUniform1i(texture1Location, 0);
 	glUniform1i(texture2Location, 1);
 	
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat3 normalMat = glm::mat3(1.0f);
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), camera.screenX / camera.screenY, 0.1f, 100.0f);
-
-	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-	glm::vec3 objectColor(1.0f, 0.5f, 0.31f);
-
-	unsigned int lightColorLoc = glGetUniformLocation(shader.ID, "lightColor");
-	unsigned int objectColorLoc = glGetUniformLocation(shader.ID, "objectColor");
-	unsigned int lightPosLoc = glGetUniformLocation(shader.ID, "lightPos");
-	unsigned int normalMatLoc = glGetUniformLocation(shader.ID, "normalMat");
-	
-
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -198,18 +185,17 @@ int main()
 		glBindVertexArray(VAO);
 		shader.use();
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 1.0f, 2.0f * sin(glfwGetTime()));
-		glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+		shader.setUniformfv("lightPos", lightPos);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
-		model = glm::mat4(1.0f);
+		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(2.0f, 1.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		shader.updateModel(model);
-		normalMat = glm::mat3(1.0f);
-		normalMat = glm::mat3(glm::transpose(glm::inverse(model)));
-		glUniformMatrix3fv(normalMatLoc, 1, GL_FALSE, glm::value_ptr(normalMat));
-		glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
-		glUniform3fv(objectColorLoc, 1, glm::value_ptr(objectColor));
+		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
+		shader.setUniformMatfv("normalMat", normalMat);
+		shader.setUniformfv("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		shader.setUniformfv("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glBindVertexArray(lightVAO);

@@ -106,3 +106,21 @@ void Shader::updateProjection(glm::mat4 projection) const
 {
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
+
+void Shader::setUniformfv(std::string uniform, glm::vec3 vector)
+{
+	unsigned int transLoc = glGetUniformLocation(ID, uniform.c_str());
+	glUniform3fv(transLoc, 1, glm::value_ptr(vector));
+}
+
+void Shader::setUniformMatfv(std::string uniform, glm::mat4 trans)
+{
+	unsigned int transLoc = glGetUniformLocation(ID, uniform.c_str());
+	glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
+}
+
+void Shader::setUniformMatfv(std::string uniform, glm::mat3 trans)
+{
+	unsigned int transLoc = glGetUniformLocation(ID, uniform.c_str());
+	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
+}
