@@ -18,9 +18,11 @@ public:
 	void updateModel(glm::mat4 model) const;
 	void updateView(glm::mat4 view) const;
 	void updateProjection(glm::mat4 projection) const;
-	void setUniformfv(std::string uniform, glm::vec3 vector);
-	void setUniformMatfv(std::string uniform, glm::mat4 trans);
-	void setUniformMatfv(std::string uniform, glm::mat3 trans);
+	void setInt(std::string uniform, int value);
+	void setFloat(std::string uniform, float value);
+	void setVec(std::string uniform, glm::vec3 vector);
+	void setMat(std::string uniform, glm::mat4 trans);
+	void setMat(std::string uniform, glm::mat3 trans);
 	void use() const;
 };
 

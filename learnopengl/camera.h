@@ -8,9 +8,9 @@ class Camera
 private:
 	glm::mat4 getLookAt();
 	glm::mat4 getProjection();
-	float fov;
 
 public: 
+	float fov;
 	float screenX;
 	float screenY;
 	Camera();
