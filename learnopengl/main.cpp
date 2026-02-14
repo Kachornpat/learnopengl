@@ -147,11 +147,11 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	data = stbi_load("container2_specular.jpg", &width, &height, &nrChannels, 0);
+	data = stbi_load("container2_specular.png", &width, &height, &nrChannels, 0);
 
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	stbi_image_free(data);
@@ -172,6 +172,19 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
+	glm::vec3 cubePosition[] = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, 3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f , -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentTime = glfwGetTime();
@@ -180,7 +193,7 @@ int main()
 		processInput(window);
 	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 		glBindVertexArray(VAO);
 		shader.use();
@@ -189,17 +202,28 @@ int main()
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		shader.updateModel(model);
-		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
-		shader.setMat("normalMat", normalMat);
+		
 		shader.setVec("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		shader.setVec("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 		shader.setVec("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		shader.setVec("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		shader.setFloat("light.constant", 1.0f);
+		shader.setFloat("light.linear", 0.09f);
+		shader.setFloat("light.quadratic", 0.032f);
+		shader.setVec("light.position", lightPos);
 		shader.setFloat("material.shininess", 32.0f);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, cubePosition[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
+			shader.setMat("normalMat", normalMat);
+			shader.updateModel(model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -210,7 +234,7 @@ int main()
 		lightShader.use();
 		camera.updateView(&lightShader);
 		camera.updateProjection(&lightShader);
-		model = glm::mat4(1.0f);
+		glm::mat4 model(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		lightShader.updateModel(model);
