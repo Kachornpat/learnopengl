@@ -197,8 +197,12 @@ int main()
 
 		glBindVertexArray(VAO);
 		shader.use();
-		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
-		shader.setVec("light.position", lightPos);
+		//glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
+		//shader.setVec("light.position", lightPos);
+		//shader.setVec("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		shader.setVec("light.position", camera.Position);
+		shader.setVec("light.direction", camera.Front);
+		shader.setFloat("light.cutOff", cos(glm::radians(12.5f)));
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
@@ -206,11 +210,9 @@ int main()
 		shader.setVec("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		shader.setVec("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 		shader.setVec("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		shader.setVec("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 		shader.setFloat("light.constant", 1.0f);
 		shader.setFloat("light.linear", 0.09f);
 		shader.setFloat("light.quadratic", 0.032f);
-		shader.setVec("light.position", lightPos);
 		shader.setFloat("material.shininess", 32.0f);
 		for (unsigned int i = 0; i < 10; i++)
 		{
@@ -230,15 +232,15 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		glBindVertexArray(lightVAO);
-		lightShader.use();
-		camera.updateView(&lightShader);
-		camera.updateProjection(&lightShader);
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-		lightShader.updateModel(model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(lightVAO);
+		//lightShader.use();
+		//camera.updateView(&lightShader);
+		//camera.updateProjection(&lightShader);
+		//glm::mat4 model(1.0f);
+		//model = glm::translate(model, lightPos);
+		//model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+		//lightShader.updateModel(model);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 		glfwSwapBuffers(window);
