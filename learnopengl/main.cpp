@@ -203,6 +203,7 @@ int main()
 		shader.setVec("light.position", camera.Position);
 		shader.setVec("light.direction", camera.Front);
 		shader.setFloat("light.cutOff", cos(glm::radians(12.5f)));
+		shader.setFloat("light.outerCutOff", cos(glm::radians(17.0f)));
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
