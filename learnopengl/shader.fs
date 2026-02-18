@@ -41,7 +41,7 @@ void main()
 	float epsilon = light.cutOff - light.outerCutOff;
 	float intensity = clamp((theta - light.outerCutOff)/ epsilon, 0.0f, 1.0f);
 
-	vec3 ambient = light.ambient * attenuation * vec3(texture(material.diffuse, TexCoords));
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 
 	float antenuation = 0.0f;
 	vec3 norm = normalize(Normal);
