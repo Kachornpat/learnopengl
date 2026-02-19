@@ -207,6 +207,10 @@ int main()
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
+		shader.setVec("dirLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		shader.setVec("dirLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		shader.setVec("dirLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		shader.setVec("dirLight.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 		
 		shader.setVec("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		shader.setVec("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
