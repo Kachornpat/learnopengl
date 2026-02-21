@@ -52,7 +52,9 @@
     <None Include="lightShader.vs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="lightShader.fs" />
+    <None Include="lightShader.fs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="container.jpg">

@@ -163,6 +163,7 @@ int main()
 	shader.use();
 	shader.setInt("material.diffuse", 0);
 	shader.setInt("material.specular", 1);
+	shader.setFloat("material.shininess", 32.0f);
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -197,23 +198,11 @@ int main()
 
 		glBindVertexArray(VAO);
 		shader.use();
-		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
-		//shader.setVec("light.position", lightPos);
-		//shader.setVec("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
-		//shader.setVec("light.position", camera.Position);
-		//shader.setVec("light.direction", camera.Front);
-		//shader.setFloat("light.cutOff", cos(glm::radians(12.5f)));
-		//shader.setFloat("light.outerCutOff", cos(glm::radians(17.0f)));
-		//shader.setVec("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		//shader.setVec("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		//shader.setVec("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		//shader.setFloat("light.constant", 1.0f);
-		//shader.setFloat("light.linear", 0.09f);
-		//shader.setFloat("light.quadratic", 0.032f);
-		shader.setFloat("material.shininess", 32.0f);
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
+		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
+
 		//shader.setVec("dirLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		//shader.setVec("dirLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 		//shader.setVec("dirLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
@@ -226,6 +215,17 @@ int main()
 		shader.setFloat("pointLight.constant", 1.0f);
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
+		//
+		//shader.setVec("spotLight.position", camera.Position);
+		//shader.setVec("spotLight.direction", camera.Front);
+		//shader.setFloat("spotLight.cutOff", cos(glm::radians(12.5f)));
+		//shader.setFloat("spotLight.outerCutOff", cos(glm::radians(17.0f)));
+		//shader.setVec("spotLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		//shader.setVec("spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		//shader.setVec("spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		//shader.setFloat("spotLight.constant", 1.0f);
+		//shader.setFloat("spotLight.linear", 0.09f);
+		//shader.setFloat("spotLight.quadratic", 0.032f);
 		
 		
 		for (unsigned int i = 0; i < 10; i++)
