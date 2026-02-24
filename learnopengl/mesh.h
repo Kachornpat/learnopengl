@@ -2,6 +2,7 @@
 #define MESH_H
 #include <string>
 #include <glm/glm.hpp>
+#include "shader.h"
 
 struct Vertex {
 	glm::vec3 position;
@@ -10,11 +11,12 @@ struct Vertex {
 };
 
 struct Texture {
-	unsigned int ID;
+	unsigned int id;
 	std::string type;
 };
 
 class Mesh {
+	unsigned int VBO, VAO, EBO;
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
@@ -23,5 +25,6 @@ public:
 	Mesh(std::vector<Vertex> vertexs, 
 		std::vector<unsigned int> indices, 
 		std::vector<Texture> textures);
+	void Draw(Shader &shader);
 };
 #endif

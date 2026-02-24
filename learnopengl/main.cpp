@@ -161,8 +161,8 @@ int main()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, specularMap);
 	shader.use();
-	shader.setInt("material.diffuse", 0);
-	shader.setInt("material.specular", 1);
+	shader.setInt("material.texture_diffuse1", 0);
+	shader.setInt("material.texture_specular1", 1);
 	shader.setFloat("material.shininess", 32.0f);
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);

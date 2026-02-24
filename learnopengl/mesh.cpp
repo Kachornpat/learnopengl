@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 
 #include "mesh.h"
+#include "shader.h"
 
 Mesh::Mesh(std::vector<Vertex> vertices, 
 	       std::vector<unsigned int> indices,
@@ -15,7 +16,6 @@ Mesh::Mesh(std::vector<Vertex> vertices,
 
 void Mesh::setupMesh()
 {
-	unsigned int VBO, VAO, EBO;
 	glGenBuffers(1, &VAO);
 	glBindVertexArray(VAO);
 
@@ -35,4 +35,26 @@ void Mesh::setupMesh()
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+}
+
+void Mesh::Draw(Shader &shader) {
+	unsigned int diffuseNr = 1;
+	unsigned int specularNr = 1;
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		std::string number;
+		std::string name = textures[i].type;
+		if (name == "texture_diffuse")
+			number = std::to_string(diffuseNr++);
+		else if (name == "texture_specular")
+			number = std::to_string(specularNr++);
+		shader.setInt(("material." + name + number).c_str(), i);
+		glBindTexture(GL_TEXTURE_2D, textures[i].id);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 }
