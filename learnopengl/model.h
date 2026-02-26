@@ -7,7 +7,9 @@
 
 class Model {
 private:
+	std::string directory;
 	std::vector<Mesh> meshes;
+	void loadModel(std::string path);
 
 public:
 	void Draw(Shader &shader);
