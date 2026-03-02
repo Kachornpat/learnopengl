@@ -25,7 +25,7 @@ struct PointLight {
 	vec3 diffuse;
 	vec3 specular;
 
-	//atenuation
+	//attenuation
 	float constant;
 	float linear;
 	float quadratic;

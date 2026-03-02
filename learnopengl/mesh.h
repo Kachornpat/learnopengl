@@ -13,15 +13,18 @@ struct Vertex {
 struct Texture {
 	unsigned int id;
 	std::string type;
+	std::string path;
 };
 
 class Mesh {
+private:
 	unsigned int VBO, VAO, EBO;
+	void setupMesh();
+public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
-	void setupMesh();
-public:
+
 	Mesh(std::vector<Vertex> vertexs, 
 		std::vector<unsigned int> indices, 
 		std::vector<Texture> textures);

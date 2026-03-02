@@ -10,6 +10,7 @@
 #include "shader.h"
 #include "stb_image.h"
 #include "camera.h"
+#include "model.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -104,6 +105,7 @@ int main()
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
+	Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
 	unsigned int lightVAO, VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO); 
@@ -161,8 +163,8 @@ int main()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, specularMap);
 	shader.use();
-	shader.setInt("material.texture_diffuse1", 0);
-	shader.setInt("material.texture_specular1", 1);
+	//shader.setInt("material.texture_diffuse1", 0);
+	//shader.setInt("material.texture_specular1", 1);
 	shader.setFloat("material.shininess", 32.0f);
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
@@ -185,6 +187,7 @@ int main()
 		glm::vec3(1.5f, 0.2f, -1.5f),
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -241,10 +244,8 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
+		backpack.Draw(shader);
+
 
 		glBindVertexArray(lightVAO);
 		lightShader.use();
