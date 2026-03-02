@@ -7,16 +7,23 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "shader.h"
 #include "stb_image.h"
 #include "camera.h"
-#include "model.h"
+
+#include "mesh.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+void processNode(aiNode* node, unsigned int childNum, const aiScene* scene);
 
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
@@ -68,7 +75,6 @@ int main()
 	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
 	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
@@ -82,7 +88,7 @@ int main()
 	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
+	
 	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
@@ -96,8 +102,8 @@ int main()
 	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+	
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
 	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
@@ -105,14 +111,34 @@ int main()
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
-	Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
+	std::vector<float> vertices_vec;	
+
+	for (unsigned int i = 0; i < 288; i++)
+		vertices_vec.push_back(vertices[i]);
+
+	Assimp::Importer importer;
+	std::string path = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+		return -1;
+	}
+	std::string directory = path.substr(0, path.find_last_of("/"));
+
+	processNode(scene->mRootNode, 0, scene);
+
+
+
+	//Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
 	unsigned int lightVAO, VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO); 
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices_vec.size(), &vertices_vec[0], GL_STATIC_DRAW);
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -244,7 +270,7 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		backpack.Draw(shader);
+		//backpack.Draw(shader);
 
 
 		glBindVertexArray(lightVAO);
@@ -256,6 +282,9 @@ int main()
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		lightShader.updateModel(model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//glBindVertexArray(meshes[0].VAO);
+		//glDrawElements(GL_TRIANGLES, meshes[0].EBO, GL_UNSIGNED_INT, 0);
 
 
 		glfwSwapBuffers(window);
@@ -332,4 +361,24 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		camera.fov = 45.0f;
 	if (camera.fov < 1.0f)
 		camera.fov = 1.0f;
+}
+
+void processNode(aiNode* node, unsigned int childNum, const aiScene* scene)
+{
+	std::cout << "===========================================" << std::endl;
+	std::cout << "Node: " << childNum << std::endl;
+	std::cout << "Children: " << node->mNumChildren << std::endl;
+	std::cout << "Mesh: " << node->mNumMeshes << std::endl;
+
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+		// Get Mesh from Assimp
+		unsigned int meshIndex = node->mMeshes[i];
+		std::cout << "Mesh[" << i << "] " << meshIndex << std::endl; 
+		std::cout << "    mNumFaces " << scene->mMeshes[meshIndex]->mNumFaces << std::endl;
+	}
+
+	for (unsigned int i = 0; i < node->mNumChildren;i++) {
+		//std::cout << ""
+		processNode(node->mChildren[i], i, scene);
+	}
 }
