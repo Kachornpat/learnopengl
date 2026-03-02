@@ -10,8 +10,7 @@
 #include "shader.h"
 #include "stb_image.h"
 #include "camera.h"
-
-
+#include "model.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -104,6 +103,8 @@ int main()
 	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
+
+	Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
 
 	unsigned int lightVAO, VAO, VBO;
 	glGenVertexArrays(1, &VAO);
