@@ -44,7 +44,10 @@ struct meshVAO {
 	unsigned int indiceLength;
 };
 
+std::vector<meshVAO> meshes;
+
 meshVAO genVAO(aiMesh* mesh);
+void processNode(aiNode* node, const aiScene *scene);
 
 int main()
 {
@@ -85,83 +88,8 @@ int main()
 		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
 		return -1;
 	}
-	// 1, 3, 4 guitar
-	// 5 bag cover
-	// 6 
-	// 21 axe
-	// 15 knife
-	// 7 ,14 wood plate
-	// 10, 13 sheet-belt
-	// 11, 47 belt
-	// 48, 50
-	// 20 handle
-	// 22 knot
-	// 23 ,49 Heinz tamato can
-	// 24 AIDs kit
-	// 39 mug
-	// 40, 41, 42, 56 hook
-	// 55 string
-	// 59, 64 bag strap
-	// max 78
-	aiMesh* mesh = scene->mMeshes[10];
-	std::cout << "mNumVertices: " << mesh->mNumVertices << std::endl;
 
-	std::vector<Vertex> vertices_vertex;
-	std::vector<unsigned int> indices;
-
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-	{
-		Vertex vertex;
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
-
-		vertex.normal.x = mesh->mNormals[i].x;
-		vertex.normal.y = mesh->mNormals[i].y;
-		vertex.normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTextureCoords[0])
-		{
-			vertex.texCoord.x = mesh->mTextureCoords[0][i].x;
-			vertex.texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-			vertex.texCoord = glm::vec2(0.0f, 0.0f);
-
-		vertices_vertex.push_back(vertex);
-	}
-
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-	{
-		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-			indices.push_back(mesh->mFaces[i].mIndices[j]);
-	}
-
-	unsigned int indices_size_vao = indices.size();
-
-	unsigned int VAO, VBO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO); 
-
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_vertex.size(), &vertices_vertex[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
-	
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-	glEnableVertexAttribArray(2);
-
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
-
-	mesh = scene->mMeshes[13];
-	meshVAO meshResult = genVAO(mesh);
+	processNode(scene->mRootNode, scene);
 	
 	unsigned int diffuseMap, specularMap;
 	glGenTextures(1, &diffuseMap);
@@ -303,10 +231,14 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, indices_size_vao, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(meshResult.VAO);
-		glDrawElements(GL_TRIANGLES, meshResult.indiceLength, GL_UNSIGNED_INT, 0);
+
+		for (unsigned int i = 0; i < meshes.size(); i++)
+		{
+			glBindVertexArray(meshes[i].VAO);
+			glDrawElements(GL_TRIANGLES, meshes[i].indiceLength, GL_UNSIGNED_INT, 0);
+		}
+
+
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -462,4 +394,12 @@ meshVAO genVAO(aiMesh* mesh)
 	result.indiceLength = indices.size();
 
 	return result;	
+}
+
+void processNode(aiNode *node, const aiScene* scene)
+{
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+		meshes.push_back(genVAO(scene->mMeshes[node->mMeshes[i]]));
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+		processNode(node->mChildren[i], scene);
 }
