@@ -14,6 +14,7 @@
 #include "shader.h"
 #include "stb_image.h"
 #include "camera.h"
+#include "mesh.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -33,20 +34,8 @@ float fov = 45.0f;
 
 bool firstMouse = true;
 
-struct Vertex {
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec2 texCoord;
-};
+std::vector<Mesh> Mesh_meshes;
 
-struct meshVAO {
-	unsigned int VAO;
-	unsigned int indiceLength;
-};
-
-std::vector<meshVAO> meshes;
-
-meshVAO genVAO(aiMesh* mesh);
 void processNode(aiNode* node, const aiScene *scene);
 
 int main()
@@ -232,13 +221,10 @@ int main()
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
 
-		for (unsigned int i = 0; i < meshes.size(); i++)
+		for (unsigned int i = 0; i < Mesh_meshes.size(); i++)
 		{
-			glBindVertexArray(meshes[i].VAO);
-			glDrawElements(GL_TRIANGLES, meshes[i].indiceLength, GL_UNSIGNED_INT, 0);
+			Mesh_meshes[i].draw();
 		}
-
-
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -249,10 +235,6 @@ int main()
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		lightShader.updateModel(model);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		//glBindVertexArray(meshes[0].VAO);
-		//glDrawElements(GL_TRIANGLES, meshes[0].EBO, GL_UNSIGNED_INT, 0);
 
 
 		glfwSwapBuffers(window);
@@ -331,75 +313,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		camera.fov = 1.0f;
 }
 
-meshVAO genVAO(aiMesh* mesh)
-{
-	std::cout << "mNumVertices: " << mesh->mNumVertices << std::endl;
-
-	std::vector<Vertex> vertices_vertex;
-	std::vector<unsigned int> indices;
-
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-	{
-		Vertex vertex;
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
-
-		vertex.normal.x = mesh->mNormals[i].x;
-		vertex.normal.y = mesh->mNormals[i].y;
-		vertex.normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTextureCoords[0])
-		{
-			vertex.texCoord.x = mesh->mTextureCoords[0][i].x;
-			vertex.texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-			vertex.texCoord = glm::vec2(0.0f, 0.0f);
-
-		vertices_vertex.push_back(vertex);
-	}
-
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-	{
-		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-			indices.push_back(mesh->mFaces[i].mIndices[j]);
-	}
-
-	unsigned int indices_size_vao = indices.size();
-
-	unsigned int VAO, VBO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_vertex.size(), &vertices_vertex[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-	glEnableVertexAttribArray(2);
-
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
-
-	meshVAO result;
-	result.VAO = VAO;
-	result.indiceLength = indices.size();
-
-	return result;	
-}
-
 void processNode(aiNode *node, const aiScene* scene)
 {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
-		meshes.push_back(genVAO(scene->mMeshes[node->mMeshes[i]]));
+		Mesh_meshes.push_back(Mesh(scene->mMeshes[node->mMeshes[i]]));
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 		processNode(node->mChildren[i], scene);
 }
