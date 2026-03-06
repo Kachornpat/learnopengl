@@ -21,7 +21,7 @@ private:
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures;
 
-	unsigned int loadTexture(const char* path);
+	unsigned int loadTexture(std::string path);
 	void processNode(aiNode* node, const aiScene* scene);
 	void processTexture(aiMaterial* material, aiTextureType textureType);
 public:

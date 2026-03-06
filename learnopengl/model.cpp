@@ -41,7 +41,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 }
 
 
-unsigned int Model::loadTexture(const char* path)
+unsigned int Model::loadTexture(std::string path)
 {
 	unsigned int textureMap;
 	glGenTextures(1, &textureMap);
@@ -54,7 +54,7 @@ unsigned int Model::loadTexture(const char* path)
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
 
-	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
 	if (data)
 	{
