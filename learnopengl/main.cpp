@@ -34,9 +34,17 @@ float fov = 45.0f;
 
 bool firstMouse = true;
 
+struct Texture {
+	unsigned int id;
+	std::string type;
+	std::string path;
+};
+
 std::vector<Mesh> Mesh_meshes;
+std::vector<Texture> textures;
 
 void processNode(aiNode* node, const aiScene *scene);
+unsigned int loadTexture(const char* path);
 
 int main()
 {
@@ -68,9 +76,11 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
+	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	std::string directory = filename.substr(0, filename.find_last_of('/'));
+
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj", 
-		aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -79,51 +89,78 @@ int main()
 	}
 
 	processNode(scene->mRootNode, scene);
-	
-	unsigned int diffuseMap, specularMap;
-	glGenTextures(1, &diffuseMap);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
+	for (unsigned int i = 0; i < Mesh_meshes.size(); i++) {
+		aiMaterial *material = scene->mMaterials[Mesh_meshes[i].materialIndex];
+		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
+		{
+			bool skip = false;
+			aiString texturePath;
+			material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath); 
+			std::string path = directory + "/" + texturePath.C_Str();
+			for (unsigned int k = 0; k < textures.size(); k++)
+			{
+				if (!std::strcmp(textures[k].path.data(), path.c_str()))
+				{
+					skip = true;
+				}
+			}
 
-	unsigned char* data = stbi_load("C:/Users/kachornpat.g/Downloads/backpack/diffuse.jpg", &width, &height, &nrChannels, 0);
+			if (!skip)
+			{
+				Texture texture;
+				unsigned int textureMap = loadTexture(path.c_str());
+				texture.id = textureMap;
+				texture.type = "texture_diffuse";
+				texture.path = path;
+				textures.push_back(texture);
+			}
+		}
 
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
+		{
+			bool skip = false;
+			aiString texturePath;
+			material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
+			std::string path = directory + "/" + texturePath.C_Str();
+			for (unsigned int k = 0; k < textures.size(); k++)
+			{
+				if (!std::strcmp(textures[k].path.data(), path.c_str()))
+				{
+					skip = true;
+				}
+			}
+
+			if (!skip)
+			{
+				Texture texture;
+				unsigned int textureMap = loadTexture(path.c_str());
+				texture.id = textureMap;
+				texture.type = "texture_specular";
+				texture.path = path;
+				textures.push_back(texture);
+			}
+		}
+
 	}
-	stbi_image_free(data);
 
-
-	glGenTextures(1, &specularMap);
-	glBindTexture(GL_TEXTURE_2D, specularMap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	data = stbi_load("C:/Users/kachornpat.g/Downloads/backpack/specular.jpg", &width, &height, &nrChannels, 0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	stbi_image_free(data);
-	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, specularMap);
 	shader.use();
-	shader.setInt("material.texture_diffuse1", 0);
-	shader.setInt("material.texture_specular1", 1);
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		unsigned int diffuseNr = 1;
+		unsigned int specularNr = 1;
+		std::string number;
+		std::string texture_type = textures[i].type;
+		if (texture_type == "texture_diffuse")
+			number = std::to_string(diffuseNr++);
+		else if (texture_type == "texture_specular")
+			number = std::to_string(specularNr++);
+		shader.setInt(("material." + texture_type + number), i);
+
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, textures[i].id);
+	}
+
 	shader.setFloat("material.shininess", 32.0f);
 
 	float light[] = {
@@ -201,7 +238,7 @@ int main()
 		shader.setFloat("pointLight.constant", 1.0f);
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
-		//
+		
 		//shader.setVec("spotLight.position", camera.Position);
 		//shader.setVec("spotLight.direction", camera.Front);
 		//shader.setFloat("spotLight.cutOff", cos(glm::radians(12.5f)));
@@ -319,4 +356,36 @@ void processNode(aiNode *node, const aiScene* scene)
 		Mesh_meshes.push_back(Mesh(scene->mMeshes[node->mMeshes[i]]));
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 		processNode(node->mChildren[i], scene);
+}
+
+unsigned int loadTexture(const char* path)
+{
+	unsigned int textureMap;
+	glGenTextures(1, &textureMap);
+	glBindTexture(GL_TEXTURE_2D, textureMap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+	if (data)
+	{
+		GLenum fileFormat;
+		if (nrChannels == 1)
+			fileFormat = GL_RED;
+		else if (nrChannels == 3)
+			fileFormat = GL_RGB;
+		else 
+			fileFormat = GL_RGBA;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
+	return textureMap;
 }

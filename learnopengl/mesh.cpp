@@ -12,6 +12,7 @@ Mesh::Mesh(aiMesh* mesh)
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 
+
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		Vertex vertex;
@@ -41,6 +42,7 @@ Mesh::Mesh(aiMesh* mesh)
 	}
 	
 	indiceSize = indices.size();
+	materialIndex = mesh->mMaterialIndex;
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);

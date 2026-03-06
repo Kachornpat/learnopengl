@@ -15,7 +15,7 @@ class Mesh {
 private:
 	unsigned int VBO, EBO;
 public:
-	unsigned int VAO, indiceSize;
+	unsigned int VAO, indiceSize, materialIndex;
 	Mesh(aiMesh* mesh);
 	void draw() const;
 };
