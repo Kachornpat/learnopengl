@@ -93,7 +93,10 @@ void Model::processTexture(aiMaterial* material, aiTextureType textureType) {
 			Texture texture;
 			unsigned int textureMap = loadTexture(path.c_str());
 			texture.id = textureMap;
-			texture.type = "texture_specular";
+			if( textureType == aiTextureType_DIFFUSE)
+				texture.type = "texture_diffuse";
+			else if (textureType == aiTextureType_SPECULAR)
+				texture.type = "texture_specular";
 			texture.path = path;
 			textures.push_back(texture);
 		}
