@@ -73,24 +73,33 @@ unsigned int Model::loadTexture(std::string path)
 	return textureMap;
 }
 
-void Model::processTexture(aiMaterial* material, aiTextureType textureType) {
+std::vector<Texture> Model::processTexture(aiMaterial* material, aiTextureType textureType) {
+
+	std::vector<Texture> processedTextures;
+
 	for (unsigned int j = 0; j < material->GetTextureCount(textureType); j++)
 	{
 		bool skip = false;
 		aiString texturePath;
+
 		material->GetTexture(textureType, j, &texturePath);
 		std::string path = directory + "/" + texturePath.C_Str();
+
+		Texture texture;
+		
 		for (unsigned int k = 0; k < textures.size(); k++)
 		{
 			if (!std::strcmp(textures[k].path.data(), path.c_str()))
 			{
+				texture.id = textures[k].id;
+				texture.type = textures[k].type;
+				texture.path = textures[k].path;
 				skip = true;
 			}
 		}
 
 		if (!skip)
 		{
-			Texture texture;
 			unsigned int textureMap = loadTexture(path.c_str());
 			texture.id = textureMap;
 			if( textureType == aiTextureType_DIFFUSE)
@@ -98,9 +107,14 @@ void Model::processTexture(aiMaterial* material, aiTextureType textureType) {
 			else if (textureType == aiTextureType_SPECULAR)
 				texture.type = "texture_specular";
 			texture.path = path;
+			std::cout << texture.id << " " << texture.path << " " << texture.type << std::endl;
 			textures.push_back(texture);
 		}
+		
+		processedTextures.push_back(texture);
 	}
+	
+	return processedTextures;
 }
 
 void Model::draw(Shader &shader) {

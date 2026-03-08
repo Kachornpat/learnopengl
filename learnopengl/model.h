@@ -23,7 +23,7 @@ private:
 
 	unsigned int loadTexture(std::string path);
 	void processNode(aiNode* node, const aiScene* scene);
-	void processTexture(aiMaterial* material, aiTextureType textureType);
+	std::vector<Texture> processTexture(aiMaterial* material, aiTextureType textureType);
 public:
 	Model(std::string filename);
 	void draw(Shader& shader);
