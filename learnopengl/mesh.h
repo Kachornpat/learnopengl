@@ -11,6 +11,12 @@ struct Vertex {
 	glm::vec2 texCoord;
 };
 
+struct Texture {
+	unsigned int id;
+	std::string type;
+	std::string path;
+};
+
 class Mesh {
 private:
 	unsigned int VBO, EBO;

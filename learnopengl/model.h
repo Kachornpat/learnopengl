@@ -8,11 +8,6 @@
 #include "shader.h"
 #include "mesh.h"
 
-struct Texture {
-	unsigned int id;
-	std::string type;
-	std::string path;
-};
 
 class Model {
 private:
