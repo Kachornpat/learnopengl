@@ -17,6 +17,14 @@ struct Texture {
 	std::string path;
 };
 
+struct Mesh_s {
+	unsigned int vao;
+	unsigned int indiceSize;
+};
+
+Mesh_s processMesh(aiMesh* mesh);
+void drawMesh(Mesh_s mesh);
+
 class Mesh {
 private:
 	unsigned int VBO, EBO;

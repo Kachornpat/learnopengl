@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 
+#include <cstdlib>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 
@@ -69,4 +70,11 @@ void Mesh::draw() const
 {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indiceSize, GL_UNSIGNED_INT, 0);
+}
+
+
+void drawMesh(Mesh_s mesh)
+{
+	glBindVertexArray(mesh.vao);
+	glDrawElements(GL_TRIANGLES, mesh.indiceSize, GL_UNSIGNED_INT, 0);
 }

@@ -64,7 +64,89 @@ int main()
 	glViewport(0, 0, camera.screenX, camera.screenY);
 	
 	Shader shader("shader.vs", "shader.fs");
-	Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
+
+	// Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
+	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	std::string directory = filename.substr(0, filename.find_last_of('/'));
+
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+
+	aiMesh* mesh = scene->mMeshes[0];
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
+		return -1;
+	}
+	
+	/*
+	unsigned int verticesSize = sizeof(Vertex) * mesh->mNumVertices;
+	Vertex* vertices = (Vertex*)malloc(verticesSize);
+
+	unsigned int indicesSize = sizeof(unsigned int) * mesh->mNumFaces * 3;
+	unsigned int* indices = (unsigned int*)malloc(indicesSize);
+
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+	{
+		vertices[i].position.x = mesh->mVertices[i].x;
+		vertices[i].position.y = mesh->mVertices[i].y;
+		vertices[i].position.z = mesh->mVertices[i].z;
+
+		vertices[i].normal.x = mesh->mNormals[i].x;
+		vertices[i].normal.y = mesh->mNormals[i].y;
+		vertices[i].normal.z = mesh->mNormals[i].z;
+
+		if (mesh->mTextureCoords[0])
+		{
+			vertices[i].texCoord.x = mesh->mTextureCoords[0][i].x;
+			vertices[i].texCoord.y = mesh->mTextureCoords[0][i].y;
+		}
+		else
+			vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
+	}
+
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+			indices[j] = mesh->mFaces[i].mIndices[j];
+	}
+	*/
+
+	float vertices[] = {
+		-0.5f, -0.5f, 0.5f, 
+		 0.5f, -0.5f, 0.5f,
+		-0.5f,  0.5f, 0.5f,
+		 0.5f,  0.5f, 0.5f,
+	};
+
+	unsigned int indices[] = {
+		0, 1, 2,
+		1, 2, 3
+	};
+
+	unsigned int VAO, VBO, EBO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+	glEnableVertexAttribArray(0);
+	/*
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float), (void*)offsetof(Vertex, normal));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float), (void*)offsetof(Vertex, texCoord));
+	glEnableVertexAttribArray(2);
+	*/
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	shader.use();
 	shader.setFloat("material.shininess", 32.0f);
@@ -163,7 +245,7 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		backpack.draw(shader);
+		//backpack.draw(shader);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -174,6 +256,15 @@ int main()
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		lightShader.updateModel(model);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+
+		model = glm::mat4(1.0f);
+		lightShader.updateModel(model);
+		normalMat = glm::mat3(glm::transpose(glm::inverse(model)));
+		lightShader.setMat("normalMat", normalMat);
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 
 
 		glfwSwapBuffers(window);

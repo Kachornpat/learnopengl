@@ -14,6 +14,7 @@ private:
 	std::string filename;
 	std::string directory;
 	std::vector<Mesh> meshes;
+	std::vector<Mesh_s> meshes_s;
 	std::vector<Texture> textures;
 
 	unsigned int loadTexture(std::string path);
