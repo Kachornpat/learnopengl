@@ -79,12 +79,27 @@ int main()
 		return -1;
 	}
 
-	float vertices[] = {
-		-0.5f, -0.5f, 0.5f, 
-		 0.5f, -0.5f, 0.5f,
-		-0.5f,  0.5f, 0.5f,
-		 0.5f,  0.5f, 0.5f,
-	};
+	Vertex* vertices = (Vertex*)malloc(4 * sizeof(Vertex));
+	//unsigned int* indices = (unsigned int*)malloc(6);
+
+	if (vertices != NULL)
+	{
+		vertices[0].position.x = -0.5f;
+		vertices[0].position.y = -0.5f;
+		vertices[0].position.z = 0.5f;
+
+		vertices[1].position.x = 0.5f;
+		vertices[1].position.y = -0.5f;
+		vertices[1].position.z = 0.5f;
+
+		vertices[2].position.x = -0.5f;
+		vertices[2].position.y = 0.5f;
+		vertices[2].position.z = 0.5f;
+
+		vertices[3].position.x = 0.5f;
+		vertices[3].position.y = 0.5f;
+		vertices[3].position.z = 0.5f;
+	}
 
 	unsigned int indices[] = {
 		0, 1, 2,
@@ -97,14 +112,16 @@ int main()
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4, vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	free(vertices);
 
 	shader.use();
 	shader.setFloat("material.shininess", 32.0f);
@@ -187,7 +204,6 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		//backpack.draw(shader);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -206,8 +222,6 @@ int main()
 		lightShader.setMat("normalMat", normalMat);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
