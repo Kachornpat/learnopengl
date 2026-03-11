@@ -65,13 +65,11 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	// Model backpack("C:/Users/kachornpat.g/Downloads/backpack/backpack.obj");
 	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-
 
 	aiMesh* mesh = scene->mMeshes[0];
 
@@ -80,39 +78,6 @@ int main()
 		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
 		return -1;
 	}
-	
-	/*
-	unsigned int verticesSize = sizeof(Vertex) * mesh->mNumVertices;
-	Vertex* vertices = (Vertex*)malloc(verticesSize);
-
-	unsigned int indicesSize = sizeof(unsigned int) * mesh->mNumFaces * 3;
-	unsigned int* indices = (unsigned int*)malloc(indicesSize);
-
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-	{
-		vertices[i].position.x = mesh->mVertices[i].x;
-		vertices[i].position.y = mesh->mVertices[i].y;
-		vertices[i].position.z = mesh->mVertices[i].z;
-
-		vertices[i].normal.x = mesh->mNormals[i].x;
-		vertices[i].normal.y = mesh->mNormals[i].y;
-		vertices[i].normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTextureCoords[0])
-		{
-			vertices[i].texCoord.x = mesh->mTextureCoords[0][i].x;
-			vertices[i].texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-			vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
-	}
-
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-	{
-		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-			indices[j] = mesh->mFaces[i].mIndices[j];
-	}
-	*/
 
 	float vertices[] = {
 		-0.5f, -0.5f, 0.5f, 
@@ -136,13 +101,6 @@ int main()
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
 	glEnableVertexAttribArray(0);
-	/*
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float), (void*)offsetof(Vertex, texCoord));
-	glEnableVertexAttribArray(2);
-	*/
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -214,10 +172,6 @@ int main()
 		camera.updateProjection(&shader);
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
 
-		//shader.setVec("dirLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		//shader.setVec("dirLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		//shader.setVec("dirLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		//shader.setVec("dirLight.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
 		shader.setVec("pointLight.position", lightPos);
 		shader.setVec("pointLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
@@ -226,18 +180,6 @@ int main()
 		shader.setFloat("pointLight.constant", 1.0f);
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
-		
-		//shader.setVec("spotLight.position", camera.Position);
-		//shader.setVec("spotLight.direction", camera.Front);
-		//shader.setFloat("spotLight.cutOff", cos(glm::radians(12.5f)));
-		//shader.setFloat("spotLight.outerCutOff", cos(glm::radians(17.0f)));
-		//shader.setVec("spotLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		//shader.setVec("spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		//shader.setVec("spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		//shader.setFloat("spotLight.constant", 1.0f);
-		//shader.setFloat("spotLight.linear", 0.09f);
-		//shader.setFloat("spotLight.quadratic", 0.032f);
-		
 		
 
 		glm::mat4 model(1.0f);

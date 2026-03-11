@@ -1,8 +1,5 @@
 #ifndef MESH_H
 #define MESH_H
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-
 #include <glm/glm.hpp>
 
 struct Vertex {
@@ -17,21 +14,10 @@ struct Texture {
 	std::string path;
 };
 
-struct Mesh_s {
+struct Mesh {
 	unsigned int vao;
 	unsigned int indiceSize;
 };
 
-Mesh_s processMesh(aiMesh* mesh);
-void drawMesh(Mesh_s mesh);
-
-class Mesh {
-private:
-	unsigned int VBO, EBO;
-public:
-	unsigned int VAO, indiceSize, materialIndex;
-	Mesh(aiMesh* mesh);
-	void draw() const;
-};
 #endif // MESH_H
 
