@@ -68,7 +68,7 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	std::string filename = "/home/kachornpat/Downloads/backpack/backpack.obj";
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 
 	Assimp::Importer importer;
@@ -80,73 +80,15 @@ int main()
 		return -1;
 	}
 
-	aiMesh* mesh = scene->mMeshes[1];
-
-	//std::vector<Vertex> vertices;
-	Vertex* vertices = (Vertex*)malloc(mesh->mNumVertices * sizeof(Vertex));
-	unsigned int numIndices = 3 * mesh->mNumFaces;
-	unsigned int* indices = (unsigned int*)malloc(numIndices * sizeof(unsigned int));
-
-
-
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-	{
-		vertices[i].position.x = mesh->mVertices[i].x;
-		vertices[i].position.y = mesh->mVertices[i].y;
-		vertices[i].position.z = mesh->mVertices[i].z;
-
-		vertices[i].normal.x = mesh->mNormals[i].x;
-		vertices[i].normal.y = mesh->mNormals[i].y;
-		vertices[i].normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTextureCoords[0])
-		{
-			vertices[i].texCoord.x = mesh->mTextureCoords[0][i].x;
-			vertices[i].texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-			vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
-	}
-
-	unsigned int indexIndice = 0;
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-	{
-		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-		{
-			indices[indexIndice] = mesh->mFaces[i].mIndices[j];
-			indexIndice++;
-		}
-	}
-
-	unsigned int VAO, VBO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER,  mesh->mNumVertices * sizeof(Vertex), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-	glEnableVertexAttribArray(2);
-
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-	free(vertices);
-	free(indices);
+	aiMesh *mesh_ai = scene->mMeshes[1];
+	Mesh mesh;
+	genMesh(mesh_ai, &mesh);
 
 	unsigned int diffuseMap = 0, specularMap = 0;
 
-	if (mesh->mMaterialIndex >= 0)
+	if (mesh_ai->mMaterialIndex >= 0)
 	{
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		aiMaterial* material = scene->mMaterials[mesh_ai->mMaterialIndex];
 		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
 		{
 			bool skip = false;
@@ -174,10 +116,6 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 		
 	}
-
-
-	
-	shader.setFloat("material.shininess", 32.0f);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -256,11 +194,7 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-
-		shader.setInt("material.texture_diffuse1", 0);
-		shader.setInt("material.texture_specular1", 1);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+		drawMesh(shader, &mesh);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();

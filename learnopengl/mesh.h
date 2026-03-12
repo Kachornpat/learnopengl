@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <string>
 
+#include "shader.h"
+
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
@@ -19,10 +21,12 @@ struct Texture {
 struct Mesh {
 	unsigned int vao;
 	unsigned int numIndices;
+	Texture* textures;
 };
 
 
 void genMesh(aiMesh* mesh_ai, Mesh* mesh);
+void drawMesh(Shader &shader, Mesh *mesh);
 
 #endif // MESH_H
 
