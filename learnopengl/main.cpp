@@ -22,6 +22,9 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+unsigned int loadTexture(const char* path);
+void processTexture(aiMaterial* material, aiTextureType textureType);
+
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
 
@@ -71,40 +74,49 @@ int main()
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-	aiMesh* mesh = scene->mMeshes[0];
-
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
 		return -1;
 	}
 
-	Vertex* vertices = (Vertex*)malloc(4 * sizeof(Vertex));
-	//unsigned int* indices = (unsigned int*)malloc(6);
+	aiMesh* mesh = scene->mMeshes[1];
 
-	if (vertices != NULL)
+	//std::vector<Vertex> vertices;
+	Vertex* vertices = (Vertex*)malloc(mesh->mNumVertices * sizeof(Vertex));
+	unsigned int numIndices = 3 * mesh->mNumFaces;
+	unsigned int* indices = (unsigned int*)malloc(numIndices * sizeof(unsigned int));
+
+
+
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		vertices[0].position.x = -0.5f;
-		vertices[0].position.y = -0.5f;
-		vertices[0].position.z = 0.5f;
+		vertices[i].position.x = mesh->mVertices[i].x;
+		vertices[i].position.y = mesh->mVertices[i].y;
+		vertices[i].position.z = mesh->mVertices[i].z;
 
-		vertices[1].position.x = 0.5f;
-		vertices[1].position.y = -0.5f;
-		vertices[1].position.z = 0.5f;
+		vertices[i].normal.x = mesh->mNormals[i].x;
+		vertices[i].normal.y = mesh->mNormals[i].y;
+		vertices[i].normal.z = mesh->mNormals[i].z;
 
-		vertices[2].position.x = -0.5f;
-		vertices[2].position.y = 0.5f;
-		vertices[2].position.z = 0.5f;
-
-		vertices[3].position.x = 0.5f;
-		vertices[3].position.y = 0.5f;
-		vertices[3].position.z = 0.5f;
+		if (mesh->mTextureCoords[0])
+		{
+			vertices[i].texCoord.x = mesh->mTextureCoords[0][i].x;
+			vertices[i].texCoord.y = mesh->mTextureCoords[0][i].y;
+		}
+		else
+			vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
 	}
 
-	unsigned int indices[] = {
-		0, 1, 2,
-		1, 2, 3
-	};
+	unsigned int indexIndice = 0;
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+		{
+			indices[indexIndice] = mesh->mFaces[i].mIndices[j];
+			indexIndice++;
+		}
+	}
 
 	unsigned int VAO, VBO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -112,18 +124,59 @@ int main()
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER,  mesh->mNumVertices * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+	glEnableVertexAttribArray(2);
+
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	free(vertices);
+	free(indices);
 
-	shader.use();
+	unsigned int diffuseMap = 0, specularMap = 0;
+
+	if (mesh->mMaterialIndex >= 0)
+	{
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
+		{
+			bool skip = false;
+			aiString texturePath;
+
+			material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath);
+			std::string path = directory + "/" + texturePath.C_Str();
+			diffuseMap = loadTexture(path.c_str());
+
+		}
+		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
+		{
+			bool skip = false;
+			aiString texturePath;
+
+			material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
+			std::string path = directory + "/" + texturePath.C_Str();
+			specularMap = loadTexture(path.c_str());
+		}
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+		
+	}
+
+
+	
 	shader.setFloat("material.shininess", 32.0f);
 
 	float light[] = {
@@ -197,13 +250,17 @@ int main()
 		shader.setFloat("pointLight.constant", 1.0f);
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
-		
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
+
+		shader.setInt("material.texture_diffuse1", 0);
+		shader.setInt("material.texture_specular1", 1);
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -216,12 +273,7 @@ int main()
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 
-		model = glm::mat4(1.0f);
-		lightShader.updateModel(model);
-		normalMat = glm::mat3(glm::transpose(glm::inverse(model)));
-		lightShader.setMat("normalMat", normalMat);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -297,4 +349,36 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		camera.fov = 45.0f;
 	if (camera.fov < 1.0f)
 		camera.fov = 1.0f;
+}
+
+unsigned int loadTexture(const char* path)
+{
+	unsigned int textureMap;
+	glGenTextures(1, &textureMap);
+	glBindTexture(GL_TEXTURE_2D, textureMap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+	if (data)
+	{
+		GLenum fileFormat;
+		if (nrChannels == 1)
+			fileFormat = GL_RED;
+		else if (nrChannels == 3)
+			fileFormat = GL_RGB;
+		else
+			fileFormat = GL_RGBA;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, fileFormat, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
+	return textureMap;
 }
