@@ -21,6 +21,7 @@ struct Texture {
 struct Mesh {
 	unsigned int vao;
 	unsigned int numIndices;
+	unsigned int numTextures;
 	Texture* textures;
 };
 

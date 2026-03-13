@@ -80,15 +80,18 @@ int main()
 		return -1;
 	}
 
-	aiMesh *mesh_ai = scene->mMeshes[1];
-	Mesh mesh;
-	genMesh(mesh_ai, &mesh);
+	Mesh* meshes = (Mesh*)malloc(10 * sizeof(Mesh));
+
+	for (unsigned int i = 0; i < 10; i++)
+		genMesh(scene->mMeshes[i], meshes + i);
+
+	aiMesh *mesh = scene->mMeshes[0];
 
 	unsigned int diffuseMap = 0, specularMap = 0;
 
-	if (mesh_ai->mMaterialIndex >= 0)
+	if (mesh->mMaterialIndex >= 0)
 	{
-		aiMaterial* material = scene->mMaterials[mesh_ai->mMaterialIndex];
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
 		{
 			bool skip = false;
@@ -194,7 +197,8 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		drawMesh(shader, &mesh);
+		for (unsigned int i = 0; i < 10; i++)
+			drawMesh(shader, meshes + i);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -205,9 +209,6 @@ int main()
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		lightShader.updateModel(model);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-
-		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
