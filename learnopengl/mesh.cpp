@@ -53,17 +53,18 @@ void genMesh(aiMesh *mesh_ai, Mesh* mesh, Material* materials, unsigned int numM
 
         for (unsigned int i = 0; i < numMaterial; i++)
         {
-            if(materials[i].id == -1)
+            if (materials[i].id == mesh_ai->mMaterialIndex){
+                std::cout << "Load existed Material " << std::endl;
+                mesh->material = &materials[i];
+                break;
+            }
+            else if(materials[i].id == -1)
             {
                 std::cout << "Load new Material " << mesh_ai->mMaterialIndex << std::endl;
                 materials[i].id = mesh_ai->mMaterialIndex;
                 mesh->material = &materials[i];
+                break;
             }
-            else if (materials[i].id == mesh_ai->mMaterialIndex){
-                std::cout << "Load existed Material " << std::endl;
-                mesh->material = &materials[i];
-            }
-
         }
     }
     // ========================================
