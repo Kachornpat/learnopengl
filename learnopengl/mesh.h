@@ -18,15 +18,29 @@ struct Texture {
 	std::string path;
 };
 
+// ==============================
+struct Material {
+	int id;
+	Texture* diffuseTextures;
+};
+// ==============================
+
 struct Mesh {
 	unsigned int vao;
 	unsigned int numIndices;
 	unsigned int numTextures;
-	Texture* textures;
+	// ============================
+	// Texture* textures;
+	Material* material;
+	//=============================
 };
 
 
-void genMesh(aiMesh* mesh_ai, Mesh* mesh);
+
+// ============================================================
+// void genMesh(aiMesh* mesh_ai, Mesh *mesh);
+void genMesh(aiMesh* mesh_ai, Mesh *mesh, Material* materials, unsigned int numMaterial);
+//===============================================================
 void drawMesh(Shader &shader, Mesh *mesh);
 
 #endif // MESH_H

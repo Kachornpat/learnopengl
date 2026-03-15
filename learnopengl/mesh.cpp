@@ -5,7 +5,13 @@
 #include "mesh.h"
 #include "shader.h"
 
-void genMesh(aiMesh *mesh_ai, Mesh* mesh)
+// =============================================
+#include <iostream>
+// ==============================================
+
+//==========================================================
+// void genMesh(aiMesh *mesh_ai, Mesh* mesh)
+void genMesh(aiMesh *mesh_ai, Mesh* mesh, Material* materials, unsigned int numMaterial)
 {
 
     Vertex* vertices = (Vertex*)malloc(mesh_ai->mNumVertices * sizeof(Vertex));
@@ -40,6 +46,27 @@ void genMesh(aiMesh *mesh_ai, Mesh* mesh)
             indexIndice++;
         }
     }
+
+    // ========================================
+    if (mesh_ai->mMaterialIndex >= 0)
+    {
+
+        for (unsigned int i = 0; i < numMaterial; i++)
+        {
+            if(materials[i].id == -1)
+            {
+                std::cout << "Load new Material " << mesh_ai->mMaterialIndex << std::endl;
+                materials[i].id = mesh_ai->mMaterialIndex;
+                mesh->material = &materials[i];
+            }
+            else if (materials[i].id == mesh_ai->mMaterialIndex){
+                std::cout << "Load existed Material " << std::endl;
+                mesh->material = &materials[i];
+            }
+
+        }
+    }
+    // ========================================
 
     unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);

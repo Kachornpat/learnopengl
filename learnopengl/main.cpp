@@ -25,6 +25,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 void processTexture(aiMaterial* material, aiTextureType textureType);
 
+// process node
+// ======================================================================
+// void processNode(aiNode* node, Mesh* meshes, const aiScene* scene);
+void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials);
+//======================================================================
+unsigned int indexMesh = 0;
+// proces node: end
+
+
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
 
@@ -80,45 +89,49 @@ int main()
 		return -1;
 	}
 
-	Mesh* meshes = (Mesh*)malloc(10 * sizeof(Mesh));
+	Mesh* meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
 
-	for (unsigned int i = 0; i < 10; i++)
-		genMesh(scene->mMeshes[i], meshes + i);
-
-	aiMesh *mesh = scene->mMeshes[0];
+	// ============================================================================
+	Material* materials = (Material*) malloc(scene->mNumMaterials);
+	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+	{
+		materials[i].id = -1;
+	}
+	// ===========================================================================
+	processNode(scene->mRootNode, meshes, scene, materials);
 
 	unsigned int diffuseMap = 0, specularMap = 0;
 
-	if (mesh->mMaterialIndex >= 0)
+	// ===============================================================================
+	aiMaterial* material = scene->mMaterials[1];
+	for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
 	{
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
-		{
-			bool skip = false;
-			aiString texturePath;
+		bool skip = false;
+		aiString texturePath;
 
-			material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath);
-			std::string path = directory + "/" + texturePath.C_Str();
-			diffuseMap = loadTexture(path.c_str());
+		material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath);
+		std::string path = directory + "/" + texturePath.C_Str();
+		diffuseMap = loadTexture(path.c_str());
 
-		}
-		for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
-		{
-			bool skip = false;
-			aiString texturePath;
-
-			material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
-			std::string path = directory + "/" + texturePath.C_Str();
-			specularMap = loadTexture(path.c_str());
-		}
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
-		
 	}
+	for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
+	{
+		bool skip = false;
+		aiString texturePath;
+
+		material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
+		std::string path = directory + "/" + texturePath.C_Str();
+		specularMap = loadTexture(path.c_str());
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, specularMap);
+	// ==========================================================================
+		
+
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -197,7 +210,8 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		for (unsigned int i = 0; i < 10; i++)
+
+		for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 			drawMesh(shader, meshes + i);
 	
 		glBindVertexArray(lightVAO);
@@ -215,6 +229,8 @@ int main()
 	}
 
 	glfwTerminate();
+	free(meshes);
+	free(materials);
 	return 0;
 }
 
@@ -317,3 +333,24 @@ unsigned int loadTexture(const char* path)
 	stbi_image_free(data);
 	return textureMap;
 }
+// =============================================================
+// void processNode(aiNode* node, Mesh* meshes, const aiScene* scene)
+// ==============================================================
+void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials)
+{
+	for (unsigned int i = 0;i < node->mNumMeshes; i++)
+	{
+		// ==================================================================
+		// genMesh(scene->mMeshes[node->mMeshes[i]], meshes + i);
+		genMesh(scene->mMeshes[node->mMeshes[i]], meshes + i, materials, scene->mNumMaterials);
+		// ===================================================================
+		indexMesh++;
+	}
+	for(unsigned int i = 0; i < node->mNumChildren; i++)
+	{
+		// ==========================================================================
+		processNode(node->mChildren[i], meshes + indexMesh, scene, materials);
+		// ========================================================================
+	}
+}
+
