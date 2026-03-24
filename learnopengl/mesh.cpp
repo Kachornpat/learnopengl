@@ -2,16 +2,11 @@
 #include <assimp/scene.h>
 #include <glad/glad.h>
 
+#include <iostream>
 #include "mesh.h"
 #include "shader.h"
 
-// =============================================
-#include <iostream>
-// ==============================================
-
-//==========================================================
-// void genMesh(aiMesh *mesh_ai, Mesh* mesh)
-void genMesh(aiMesh *mesh_ai, Mesh* mesh, Material* materials, unsigned int numMaterial)
+void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materials, unsigned int numMaterial)
 {
 
     Vertex* vertices = (Vertex*)malloc(mesh_ai->mNumVertices * sizeof(Vertex));
@@ -105,3 +100,4 @@ void drawMesh(Shader &shader, Mesh *mesh)
     glBindVertexArray(mesh->vao);
     glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, 0);
 }
+void loadTexture();

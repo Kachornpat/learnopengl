@@ -77,7 +77,7 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	std::string filename = "/home/kachornpat/Downloads/backpack/backpack.obj";
+	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 
 	Assimp::Importer importer;
@@ -92,13 +92,16 @@ int main()
 	Mesh* meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
 
 	// ============================================================================
-	Material* materials = (Material*) malloc(scene->mNumMaterials);
+	Material* materials = (Material*) malloc(scene->mNumMaterials * sizeof(Material));
 	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
 	{
+		std::cout << "Load Material " << i << std::endl;
 		materials[i].id = -1;
 	}
 	// ===========================================================================
 	processNode(scene->mRootNode, meshes, scene, materials);
+
+	
 
 	unsigned int diffuseMap = 0, specularMap = 0;
 
@@ -131,7 +134,7 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, specularMap);
 	// ==========================================================================
 		
-
+	
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -228,9 +231,9 @@ int main()
 		glfwPollEvents();
 	}
 
-	glfwTerminate();
 	free(meshes);
 	free(materials);
+	glfwTerminate();
 	return 0;
 }
 
@@ -342,7 +345,7 @@ void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* mat
 	{
 		// ==================================================================
 		// genMesh(scene->mMeshes[node->mMeshes[i]], meshes + i);
-		genMesh(scene->mMeshes[node->mMeshes[i]], meshes + i, materials, scene->mNumMaterials);
+		genMesh(scene, scene->mMeshes[node->mMeshes[i]], meshes + i, materials, scene->mNumMaterials);
 		// ===================================================================
 		indexMesh++;
 	}
