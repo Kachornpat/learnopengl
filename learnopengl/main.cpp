@@ -22,17 +22,10 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-unsigned int loadTexture(const char* path);
-void processTexture(aiMaterial* material, aiTextureType textureType);
 
-// process node
-// ======================================================================
-// void processNode(aiNode* node, Mesh* meshes, const aiScene* scene);
+void loadModel(std::string filename);
 void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials);
-//======================================================================
 unsigned int indexMesh = 0;
-// proces node: end
-
 
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
@@ -54,7 +47,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow((int)camera.screenX, (int)camera.screenY, "learnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(camera.screenX, camera.screenY, "learnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -77,7 +70,8 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	//std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	std::string filename = "C:/Users/kachornpat.g/Downloads/Feneko/Feneko 1.4.gltf";
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 
 	Assimp::Importer importer;
@@ -90,51 +84,14 @@ int main()
 	}
 
 	Mesh* meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
-
-	// ============================================================================
 	Material* materials = (Material*) malloc(scene->mNumMaterials * sizeof(Material));
 	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
 	{
-		std::cout << "Load Material " << i << std::endl;
-		materials[i].id = -1;
+		if (materials != NULL)
+			materials[i].id = -1;
 	}
-	// ===========================================================================
+
 	processNode(scene->mRootNode, meshes, scene, materials);
-
-	
-
-	unsigned int diffuseMap = 0, specularMap = 0;
-
-	// ===============================================================================
-	aiMaterial* material = scene->mMaterials[1];
-	for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
-	{
-		bool skip = false;
-		aiString texturePath;
-
-		material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath);
-		std::string path = directory + "/" + texturePath.C_Str();
-		diffuseMap = loadTexture(path.c_str());
-
-	}
-	for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_SPECULAR); j++)
-	{
-		bool skip = false;
-		aiString texturePath;
-
-		material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
-		std::string path = directory + "/" + texturePath.C_Str();
-		specularMap = loadTexture(path.c_str());
-	}
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, specularMap);
-	// ==========================================================================
-		
-	
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -192,14 +149,13 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-		
 		shader.use();
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
 
-
+		shader.setFloat("material.shininess", 32.0f);
 		shader.setVec("pointLight.position", lightPos);
 		shader.setVec("pointLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		shader.setVec("pointLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
@@ -213,7 +169,6 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 			drawMesh(shader, meshes + i);
 	
@@ -269,14 +224,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	if (firstMouse)
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (int) xpos;
+		lastY = (int) ypos;
 		firstMouse = false;
 	}
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
+	lastX = (int) xpos;
+	lastY = (int) ypos;
 
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
@@ -305,55 +260,17 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		camera.fov = 1.0f;
 }
 
-unsigned int loadTexture(const char* path)
-{
-	unsigned int textureMap;
-	glGenTextures(1, &textureMap);
-	glBindTexture(GL_TEXTURE_2D, textureMap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-
-	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-
-	if (data)
-	{
-		GLenum fileFormat;
-		if (nrChannels == 1)
-			fileFormat = GL_RED;
-		else if (nrChannels == 3)
-			fileFormat = GL_RGB;
-		else
-			fileFormat = GL_RGBA;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, fileFormat, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	stbi_image_free(data);
-	return textureMap;
-}
-// =============================================================
-// void processNode(aiNode* node, Mesh* meshes, const aiScene* scene)
-// ==============================================================
 void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials)
 {
 	for (unsigned int i = 0;i < node->mNumMeshes; i++)
 	{
-		// ==================================================================
-		// genMesh(scene->mMeshes[node->mMeshes[i]], meshes + i);
-		genMesh(scene, scene->mMeshes[node->mMeshes[i]], meshes + i, materials, scene->mNumMaterials);
-		// ===================================================================
+		genMesh(scene, scene->mMeshes[node->mMeshes[i]], meshes + i, materials);
 		indexMesh++;
 	}
 	for(unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		// ==========================================================================
 		processNode(node->mChildren[i], meshes + indexMesh, scene, materials);
-		// ========================================================================
 	}
 }
+
 

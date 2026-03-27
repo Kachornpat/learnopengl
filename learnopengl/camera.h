@@ -11,8 +11,8 @@ private:
 
 public: 
 	float fov;
-	float screenX;
-	float screenY;
+	int screenX;
+	int screenY;
 	Camera();
 	glm::vec3 Position;
 	glm::vec3 Front;

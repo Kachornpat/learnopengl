@@ -12,26 +12,24 @@ struct Vertex {
 	glm::vec2 texCoord;
 };
 
-struct Texture {
-	unsigned int id;
-	std::string type;
-	std::string path;
-};
 
 struct Material {
 	int id;
-	Texture* diffuseTextures;
+	unsigned int diffuseNum;
+	unsigned int *diffuseTextures;
+	unsigned int specularNum;
+	unsigned int *specularTextures;
 };
 
 struct Mesh {
 	unsigned int vao;
 	unsigned int numIndices;
-	unsigned int numTextures;
 	Material* material;
 };
 
-void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials, unsigned int numMaterial);
+void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials);
 void drawMesh(Shader &shader, Mesh *mesh);
+void loadTexture(unsigned int *textureMap, const char* path, bool flip);
 
 #endif // MESH_H
 

@@ -21,7 +21,7 @@ glm::mat4 Camera::getLookAt()
 
 glm::mat4 Camera::getProjection()
 {
-	return glm::perspective(glm::radians(fov), screenX / screenY, 0.1f, 100.0f);
+	return glm::perspective(glm::radians(fov), (float) screenX / screenY, 0.1f, 100.0f);
 }
 
 void Camera::updateView(Shader* shader)
