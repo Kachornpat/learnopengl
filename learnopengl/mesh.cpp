@@ -12,7 +12,7 @@
 
 unsigned int textureId = 0;
 
-void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materials)
+void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materials, std::string directory)
 {
     Vertex* vertices = (Vertex*)malloc(mesh_ai->mNumVertices * sizeof(Vertex));
     unsigned int numIndices = 3 * mesh_ai->mNumFaces;
@@ -77,8 +77,6 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
                 mesh->material->diffuseTextures = (unsigned int*)malloc(diffuseNum * sizeof(unsigned int));
                 mesh->material->specularTextures = (unsigned int*)malloc(specularNum * sizeof(unsigned int));
 
-                //std::string directory = "C:/Users/kachornpat.g/Downloads/backpack";
-                std::string directory = "C:/Users/kachornpat.g/Downloads/Feneko";
                 std::cout << "Load new Material " << mesh_ai->mMaterialIndex << std::endl;
 
                 for (unsigned int j = 0; j < diffuseNum; j++)
@@ -101,7 +99,7 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
                     material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
                     std::string path = directory + "/" + texturePath.C_Str();
                     std::cout << path << std::endl;
-                    loadTexture(&specularMap, path.c_str(), false);
+                    loadTexture(mesh->material->specularTextures + j, path.c_str(), false);
                 }
                
                 break;
@@ -142,6 +140,8 @@ void drawMesh(Shader &shader, Mesh *mesh)
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mesh->material->diffuseTextures[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mesh->material->specularTextures[0]);
     shader.setInt("material.texture_diffuse1", 0);
     shader.setInt("material.texture_specular1", 0);
     glBindVertexArray(mesh->vao);

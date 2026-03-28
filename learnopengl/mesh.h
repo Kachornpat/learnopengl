@@ -27,7 +27,7 @@ struct Mesh {
 	Material* material;
 };
 
-void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials);
+void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials, std::string directory);
 void drawMesh(Shader &shader, Mesh *mesh);
 void loadTexture(unsigned int *textureMap, const char* path, bool flip);
 

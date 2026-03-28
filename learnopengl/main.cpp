@@ -7,10 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 #include "shader.h"
 #include "stb_image.h"
 #include "camera.h"
@@ -23,9 +19,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 
-void loadModel(std::string filename);
-void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials);
-unsigned int indexMesh = 0;
+void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials, std::string directory);
+void loadModel(Model* model, std::string filename);
+
 
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
@@ -70,28 +66,9 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	//std::string filename = "C:/Users/kachornpat.g/Downloads/backpack/backpack.obj";
+	Model feneko;
 	std::string filename = "C:/Users/kachornpat.g/Downloads/Feneko/Feneko 1.4.gltf";
-	std::string directory = filename.substr(0, filename.find_last_of('/'));
-
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
-		return -1;
-	}
-
-	Mesh* meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
-	Material* materials = (Material*) malloc(scene->mNumMaterials * sizeof(Material));
-	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
-	{
-		if (materials != NULL)
-			materials[i].id = -1;
-	}
-
-	processNode(scene->mRootNode, meshes, scene, materials);
+	loadModel(&feneko, filename);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -169,8 +146,7 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		for (unsigned int i = 0; i < scene->mNumMeshes; i++)
-			drawMesh(shader, meshes + i);
+		drawModel(feneko, shader);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -186,8 +162,7 @@ int main()
 		glfwPollEvents();
 	}
 
-	free(meshes);
-	free(materials);
+	deleteModel(feneko);
 	glfwTerminate();
 	return 0;
 }
@@ -260,17 +235,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		camera.fov = 1.0f;
 }
 
-void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials)
-{
-	for (unsigned int i = 0;i < node->mNumMeshes; i++)
-	{
-		genMesh(scene, scene->mMeshes[node->mMeshes[i]], meshes + i, materials);
-		indexMesh++;
-	}
-	for(unsigned int i = 0; i < node->mNumChildren; i++)
-	{
-		processNode(node->mChildren[i], meshes + indexMesh, scene, materials);
-	}
-}
+
+
 
 
