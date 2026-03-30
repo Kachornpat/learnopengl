@@ -8,8 +8,30 @@
 #include "model.h"
 
 unsigned int indexMesh = 0;
-unsigned int numMeshes = 0;
 
+void loadModel(Model* model, std::string filename)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
+		return;
+	}
+
+	model->numMeshes = scene->mNumMeshes;
+
+	model->meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
+	model->materials = (Material*)malloc(scene->mNumMaterials * sizeof(Material));
+	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+	{
+		if (model->materials != NULL)
+			model->materials[i].id = -1;
+	}
+	std::string directory = filename.substr(0, filename.find_last_of('/'));
+	processNode(scene->mRootNode, scene, model->meshes, model->materials, directory);
+}
 
 void processNode(aiNode* node, const aiScene* scene, Mesh* meshes, Material* materials, std::string directory)
 {
@@ -24,33 +46,10 @@ void processNode(aiNode* node, const aiScene* scene, Mesh* meshes, Material* mat
 	}
 }
 
-void loadModel(Model* model, std::string filename)
-{
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
-		return;
-	}
-
-	numMeshes = scene->mNumMeshes;
-
-	model->meshes = (Mesh*)malloc(scene->mNumMeshes * sizeof(Mesh));
-	model->materials = (Material*)malloc(scene->mNumMaterials * sizeof(Material));
-	for (unsigned int i = 0; i < scene->mNumMaterials; i++)
-	{
-		if (model->materials != NULL)
-			model->materials[i].id = -1;
-	}
-	std::string directory = filename.substr(0, filename.find_last_of('/'));
-	processNode(scene->mRootNode, scene, model->meshes, model->materials, directory);
-}
 
 void drawModel(Model model, Shader shader)
 {
-	for (unsigned int i = 0; i < numMeshes; i++)
+	for (unsigned int i = 0; i < model.numMeshes; i++)
 		drawMesh(shader, model.meshes + i);
 }
 

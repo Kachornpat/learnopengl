@@ -19,10 +19,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 
-void processNode(aiNode* node, Mesh* meshes, const aiScene* scene, Material* materials, std::string directory);
-void loadModel(Model* model, std::string filename);
-
-
 float deltaTime = 0.0f;
 float prevTime = 0.0f;
 
