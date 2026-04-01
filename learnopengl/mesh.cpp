@@ -82,7 +82,6 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
                 for (unsigned int j = 0; j < diffuseNum; j++)
                 {
                     aiString texturePath;
-                    unsigned int diffuseMaps;
 
                     material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath);
                     std::string path = directory + "/" + texturePath.C_Str();
@@ -94,7 +93,6 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
                 for (unsigned int j = 0; j < specularNum; j++)
                 {
                     aiString texturePath;
-                    unsigned int specularMap;
 
                     material->GetTexture(aiTextureType_SPECULAR, j, &texturePath);
                     std::string path = directory + "/" + texturePath.C_Str();

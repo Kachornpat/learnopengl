@@ -9,7 +9,7 @@
 
 unsigned int indexMesh = 0;
 
-void loadModel(Model* model, std::string filename)
+int loadModel(Model* model, std::string filename)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -17,7 +17,7 @@ void loadModel(Model* model, std::string filename)
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
-		return;
+		return -1;
 	}
 
 	model->numMeshes = scene->mNumMeshes;
@@ -31,6 +31,7 @@ void loadModel(Model* model, std::string filename)
 	}
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 	processNode(scene->mRootNode, scene, model->meshes, model->materials, directory);
+	return 0;
 }
 
 void processNode(aiNode* node, const aiScene* scene, Mesh* meshes, Material* materials, std::string directory)

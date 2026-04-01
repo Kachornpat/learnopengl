@@ -19,8 +19,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 
-float deltaTime = 0.0f;
-float prevTime = 0.0f;
+double deltaTime = 0.0f;
+double prevTime = 0.0f;
 
 Camera camera;
 
@@ -62,9 +62,10 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	Model feneko;
-	std::string filename = "C:/Users/kachornpat.g/Downloads/Feneko/Feneko 1.4.gltf";
-	loadModel(&feneko, filename);
+	Model erika;
+	std::string filename = "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack/Erika Archer.dae";
+	if (loadModel(&erika, filename) < 0)
+		return -1;
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -114,23 +115,24 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentTime = glfwGetTime();
+		double currentTime = glfwGetTime();
 		deltaTime = currentTime - prevTime;
 		prevTime = currentTime;
 		processInput(window);
 	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
 
 		shader.use();
 		shader.setVec("viewPos", camera.Position);
 		camera.updateView(&shader);
 		camera.updateProjection(&shader);
-		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
-
-		shader.setFloat("material.shininess", 32.0f);
 		shader.setVec("pointLight.position", lightPos);
 		shader.setVec("pointLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+
+
+		shader.setFloat("material.shininess", 32.0f);
 		shader.setVec("pointLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 		shader.setVec("pointLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 		shader.setFloat("pointLight.constant", 1.0f);
@@ -139,10 +141,11 @@ int main()
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		drawModel(feneko, shader);
+		drawModel(erika, shader);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -158,7 +161,7 @@ int main()
 		glfwPollEvents();
 	}
 
-	deleteModel(feneko);
+	deleteModel(erika);
 	glfwTerminate();
 	return 0;
 }
