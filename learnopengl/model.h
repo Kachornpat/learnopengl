@@ -17,4 +17,5 @@ int loadModel(Model *model, std::string filename);
 void processNode(aiNode* node, const aiScene* scene, Mesh* meshes, Material* materials, std::string directory);
 void drawModel(Model model, Shader shader);
 void deleteModel(Model model);
+void loadAnimation(Model* model, std::string filename);
 #endif

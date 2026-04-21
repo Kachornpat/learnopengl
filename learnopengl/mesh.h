@@ -27,6 +27,18 @@ struct Mesh {
 	Material* material;
 };
 
+struct Node {
+	unsigned int numMeshes;
+	Mesh* meshes;
+	unsigned int numChildren;
+	Node* children;
+};
+
+struct Bone {
+	unsigned int id;
+	Node* nodes;
+};
+
 void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials, std::string directory);
 void drawMesh(Shader &shader, Mesh *mesh);
 void loadTexture(unsigned int *textureMap, const char* path, bool flip);

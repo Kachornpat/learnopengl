@@ -14,27 +14,33 @@ unsigned int textureId = 0;
 
 void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materials, std::string directory)
 {
-    Vertex* vertices = (Vertex*)malloc(mesh_ai->mNumVertices * sizeof(Vertex));
-    unsigned int numIndices = 3 * mesh_ai->mNumFaces;
-    unsigned int* indices = (unsigned int*)malloc(numIndices * sizeof(unsigned int));
+    std::vector<Vertex> verticess;
+    std::vector<unsigned int> indicess;
 
     for (unsigned int i = 0; i < mesh_ai->mNumVertices; i++)
     {
-        vertices[i].position.x = mesh_ai->mVertices[i].x;
-        vertices[i].position.y = mesh_ai->mVertices[i].y;
-        vertices[i].position.z = mesh_ai->mVertices[i].z;
+        Vertex vertice;
 
-        vertices[i].normal.x = mesh_ai->mNormals[i].x;
-        vertices[i].normal.y = mesh_ai->mNormals[i].y;
-        vertices[i].normal.z = mesh_ai->mNormals[i].z;
+        vertice.position.x = mesh_ai->mVertices[i].x;
+        vertice.position.y = mesh_ai->mVertices[i].y;
+        vertice.position.z = mesh_ai->mVertices[i].z;
+
+
+        vertice.normal.x = mesh_ai->mNormals[i].x;
+        vertice.normal.y = mesh_ai->mNormals[i].y;
+        vertice.normal.z = mesh_ai->mNormals[i].z;
 
         if (mesh_ai->mTextureCoords[0])
         {
-            vertices[i].texCoord.x = mesh_ai->mTextureCoords[0][i].x;
-            vertices[i].texCoord.y = mesh_ai->mTextureCoords[0][i].y;
+            vertice.texCoord.x = mesh_ai->mTextureCoords[0][i].x;
+            vertice.texCoord.y = mesh_ai->mTextureCoords[0][i].y;
         }
         else
-            vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
+        {
+            vertice.texCoord = glm::vec2(0.0f, 0.0f);
+        }
+
+        verticess.push_back(vertice);
     }
 
     unsigned int indexIndice = 0;
@@ -42,8 +48,7 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
     {
         for (unsigned int j = 0; j < mesh_ai->mFaces[i].mNumIndices; j++)
         {
-            indices[indexIndice] = mesh_ai->mFaces[i].mIndices[j];
-            indexIndice++;
+            indicess.push_back(mesh_ai->mFaces[i].mIndices[j]);
         }
     }
 
@@ -105,14 +110,13 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
         }
     }
 
-
     unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER,  mesh_ai->mNumVertices * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, verticess.size() * sizeof(Vertex), &verticess[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -125,13 +129,11 @@ void genMesh(const aiScene* scene, aiMesh *mesh_ai, Mesh* mesh, Material* materi
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicess.size() * sizeof(unsigned int), &indicess[0], GL_STATIC_DRAW);
 
-    free(vertices);
-    free(indices);
 
     mesh->vao = VAO;
-    mesh->numIndices = numIndices;
+    mesh->numIndices = indicess.size();
 }
 
 void drawMesh(Shader &shader, Mesh *mesh)

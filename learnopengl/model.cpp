@@ -8,10 +8,10 @@
 #include "model.h"
 
 unsigned int indexMesh = 0;
+Assimp::Importer importer;
 
 int loadModel(Model* model, std::string filename)
 {
-	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -58,4 +58,16 @@ void deleteModel(Model model)
 {
 	free(model.meshes);
 	free(model.materials);
+}
+
+void loadAnimation(Model* model, std::string filename)
+{
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
+		return;
+	}
+	std::cout << "mTickPerSecond >>> " << scene->mAnimations[0]->mTicksPerSecond << std::endl;
 }

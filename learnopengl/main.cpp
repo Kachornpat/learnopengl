@@ -67,6 +67,8 @@ int main()
 	if (loadModel(&erika, filename) < 0)
 		return -1;
 
+	loadAnimation(&erika, "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/standing disarm bow.fbx");
+
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
 		 0.5, -0.5f,  0.5f,
