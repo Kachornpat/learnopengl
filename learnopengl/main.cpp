@@ -62,12 +62,8 @@ int main()
 	
 	Shader shader("shader.vs", "shader.fs");
 
-	Model erika;
 	std::string filename = "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack/Erika Archer.dae";
-	if (loadModel(&erika, filename) < 0)
-		return -1;
-
-	loadAnimation(&erika, "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/standing disarm bow.fbx");
+	Model erika = Model(filename);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -147,7 +143,7 @@ int main()
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		drawModel(erika, shader);
+		erika.draw(shader);
 	
 		glBindVertexArray(lightVAO);
 		lightShader.use();
@@ -162,8 +158,6 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	deleteModel(erika);
 	glfwTerminate();
 	return 0;
 }

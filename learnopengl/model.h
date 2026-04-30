@@ -6,16 +6,19 @@
 #include "shader.h"
 #include "mesh.h"
 
-struct Model {
-	unsigned int numMeshes;
-	Mesh* meshes;
-	unsigned int numMaterials;
-	Material* materials;
+class Model {
+
+public:
+	Model(std::string filename);
+	void draw(Shader& shader);
+
+private:
+	std::string directory;
+	std::vector<Mesh> meshes;
+	std::vector<Material> materials;
+	void processNode(aiNode* node, const aiScene* scene);
+	unsigned int loadTexture(const char* path, bool flip);
+
 };
 
-int loadModel(Model *model, std::string filename);
-void processNode(aiNode* node, const aiScene* scene, Mesh* meshes, Material* materials, std::string directory);
-void drawModel(Model model, Shader shader);
-void deleteModel(Model model);
-void loadAnimation(Model* model, std::string filename);
 #endif
