@@ -59,15 +59,12 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSwapInterval(1);
 	glViewport(0, 0, camera.screenX, camera.screenY);
-	
+
 	Shader shader("shader.vs", "shader.fs");
 
-	Model erika;
-	std::string filename = "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack/Erika Archer.dae";
-	if (loadModel(&erika, filename) < 0)
-		return -1;
-
-	loadAnimation(&erika, "C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/standing disarm bow.fbx");
+	std::string filename = "C:/Users/Acer/Downloads/Feneko/Feneko 1.4.gltf";
+	//std::string filename = "C:/Users/Acer/Downloads/Erika/Erika Archer.fbx";
+	Model erika = Model(filename);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -79,19 +76,19 @@ int main()
 		-0.5,  0.5f, -0.5f,
 		 0.5,  0.5f, -0.5f
 	};
-	
+
 	unsigned int lightIndices[] = {
-		0, 1, 2, 
+		0, 1, 2,
 		2, 1, 3,
 		4, 5, 6,
 		6, 5, 7,
 		1, 3, 5,
 		3, 5, 7,
-		4, 2, 0, 
+		4, 2, 0,
 		2, 4, 6,
 		2, 3, 6,
-		3, 6, 7, 
-		0, 1, 3, 
+		3, 6, 7,
+		0, 1, 3,
 		1, 3, 5
 	};
 
@@ -109,7 +106,7 @@ int main()
 	glGenBuffers(1, &lightEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lightEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(lightIndices), lightIndices, GL_STATIC_DRAW);
-	
+
 	Shader lightShader("lightShader.vs", "lightShader.fs");
 
 	glEnable(GL_DEPTH_TEST);
@@ -121,7 +118,7 @@ int main()
 		deltaTime = currentTime - prevTime;
 		prevTime = currentTime;
 		processInput(window);
-	
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
@@ -143,12 +140,12 @@ int main()
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
+		//model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
-		drawModel(erika, shader);
-	
+		erika.draw(shader);
+
 		glBindVertexArray(lightVAO);
 		lightShader.use();
 		camera.updateView(&lightShader);
@@ -162,8 +159,6 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	deleteModel(erika);
 	glfwTerminate();
 	return 0;
 }

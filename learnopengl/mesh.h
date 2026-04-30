@@ -12,36 +12,27 @@ struct Vertex {
 	glm::vec2 texCoord;
 };
 
-
-struct Material {
-	int id;
-	unsigned int diffuseNum;
-	unsigned int *diffuseTextures;
-	unsigned int specularNum;
-	unsigned int *specularTextures;
-};
-
-struct Mesh {
-	unsigned int vao;
-	unsigned int numIndices;
-	Material* material;
-};
-
-struct Node {
-	unsigned int numMeshes;
-	Mesh* meshes;
-	unsigned int numChildren;
-	Node* children;
-};
-
-struct Bone {
+struct Texture {
 	unsigned int id;
-	Node* nodes;
+	std::string type;
+	std::string path;
 };
 
-void genMesh(const aiScene* scene, aiMesh* mesh_ai, Mesh *mesh, Material* materials, std::string directory);
-void drawMesh(Shader &shader, Mesh *mesh);
-void loadTexture(unsigned int *textureMap, const char* path, bool flip);
+class Mesh {
+
+public:
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> indices;
+	std::vector<Texture> textures;
+	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+		std::vector<Texture> textures);
+	void draw(Shader& shader);
+
+private:
+	unsigned int VAO, VBO, EBO;
+	void setupMesh();
+};
+
 
 #endif // MESH_H
 
