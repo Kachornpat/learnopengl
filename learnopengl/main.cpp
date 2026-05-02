@@ -195,14 +195,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	if (firstMouse)
 	{
-		lastX = (int) xpos;
-		lastY = (int) ypos;
+		lastX = (int)xpos;
+		lastY = (int)ypos;
 		firstMouse = false;
 	}
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos;
-	lastX = (int) xpos;
-	lastY = (int) ypos;
+	lastX = (int)xpos;
+	lastY = (int)ypos;
 
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
