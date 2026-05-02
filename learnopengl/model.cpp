@@ -28,6 +28,11 @@ void Model::loadModel(std::string filename)
     }
 
     directory = filename.substr(0, filename.find_last_of('/'));
+    for (unsigned int i = 0; i < scene->mNumTextures; i++)
+    {
+        aiTexture *texture = scene->mTextures[i];
+        textures_loaded.push_back(TextureFromEmbeded(texture));
+    }
     processNode(scene->mRootNode, scene);
 }
 
@@ -162,11 +167,46 @@ unsigned int Model::TextureFromFile(const char* path)
     return textureMap;
 }
 
-/*
 
-void loadEmbededTexture()
+Texture Model::TextureFromEmbeded(aiTexture* texture)
 {
-    unsigned char* data = stbi_load_from_memory(reinterpret_cast<unsigned char*>(scene->mTextures[2]->pcData), scene->mTextures[2]->mWidth, &width, &height, &nrChannels, 0);
+    Texture processedTexture;
+    unsigned int textureMap = 0;
+    glGenTextures(1, &textureMap);
+    glBindTexture(GL_TEXTURE_2D, textureMap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(false);
+
+    unsigned char* data = stbi_load_from_memory(reinterpret_cast<unsigned char*>(texture->pcData), texture->mWidth, &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        GLenum fileFormat;
+        if (nrChannels == 1)
+            fileFormat = GL_RED;
+        else if (nrChannels == 3)
+            fileFormat = GL_RGB;
+        else
+            fileFormat = GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, fileFormat, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Cannot load embeded texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    processedTexture.id = textureMap;
+    processedTexture.path = texture->mFilename.C_Str();
+    processedTexture.type = "texture_diffuse";
+
+    return processedTexture;
 }
 
-*/

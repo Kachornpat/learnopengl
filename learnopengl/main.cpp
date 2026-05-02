@@ -62,8 +62,8 @@ int main()
 
 	Shader shader("shader.vs", "shader.fs");
 
-	std::string filename = "C:/Users/Acer/Downloads/Feneko/Feneko 1.4.gltf";
-	//std::string filename = "C:/Users/Acer/Downloads/Erika/Erika Archer.fbx";
+	std::string filename = "/home/kachornpat/Downloads/Lite Longbow Pack/Erika Archer.fbx";
+
 	Model erika = Model(filename);
 
 	float light[] = {
@@ -140,7 +140,7 @@ int main()
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
+		model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
 		glm::mat3 normalMat(glm::transpose(glm::inverse(model)));
 		shader.setMat("normalMat", normalMat);
 		shader.updateModel(model);
