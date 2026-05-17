@@ -2,6 +2,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 
 #include "stb_image.h"
@@ -9,8 +11,10 @@
 
 #include "mesh.h"
 #include "model.h"
+#include "bone.h"
+#include "helper.h"
 
-void Model::draw(Shader& shader)
+void Model::draw(Shader &shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].draw(shader);
@@ -19,7 +23,7 @@ void Model::draw(Shader& shader)
 void Model::loadModel(std::string filename)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene *scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -36,18 +40,19 @@ void Model::loadModel(std::string filename)
     processNode(scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene)
+void Model::processNode(aiNode *node, const aiScene *scene)
 {
-    for (unsigned int i = 0;i < node->mNumMeshes; i++)
+    for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
     }
+
     for (unsigned int i = 0; i < node->mNumChildren; i++)
         processNode(node->mChildren[i], scene);
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
+Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -75,13 +80,14 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vertice.texCoord = glm::vec2(0.0f, 0.0f);
         }
 
+        resetBones(vertice);
+
         vertices.push_back(vertice);
     }
 
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
-        for (unsigned int j = 0; j < mesh->mFaces[i].
-            mNumIndices; j++)
+        for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
         {
             indices.push_back(mesh->mFaces[i].mIndices[j]);
         }
@@ -89,17 +95,64 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
     if (mesh->mMaterialIndex >= 0)
     {
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
+    for (unsigned int boneID = 0; boneID < mesh->mNumBones; boneID++)
+    {
+        std::string name = mesh->mBones[boneID]->mName.C_Str();
+
+        Bone bone;
+        aiMatrix4x4 offset = mesh->mBones[boneID]->mOffsetMatrix;
+        bone.name = name;
+        bone.offset = Mat4ToGLM(offset);
+        bones.push_back(bone);
+
+
+        for (unsigned int k = 0; k < mesh->mBones[boneID]->mNumWeights; k++)
+        {
+            if (mesh->mBones[boneID]->mWeights[k].mVertexId < vertices.size())
+            {
+                processBone(vertices[mesh->mBones[boneID]->mWeights[k].mVertexId],
+                            boneID,
+                            mesh->mBones[boneID]->mWeights[k].mWeight);
+            }
+            else
+                continue;
+        }
+
+    }
+
     return Mesh(vertices, indices, textures);
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+void Model::resetBones(Vertex &vertice)
+{
+    for (unsigned int i = 0; i < MAX_BONE_INFLUENCE; i++)
+    {
+        vertice.bones[i] = -1;
+        vertice.weights[i] = 0.0f;
+    }
+}
+
+void Model::processBone(Vertex &vertice, int boneID, float weight)
+{
+    for (unsigned int i = 0; i < MAX_BONE_INFLUENCE; i++)
+    {
+        if (vertice.bones[i] == -1)
+        {
+            vertice.bones[i] = boneID;
+            vertice.weights[i] = weight;
+            break;
+        }
+    }
+}
+
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName)
 {
     std::vector<Texture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -130,7 +183,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     return textures;
 }
 
-unsigned int Model::TextureFromFile(const char* path)
+unsigned int Model::TextureFromFile(const char *path)
 {
     unsigned int textureMap;
     glGenTextures(1, &textureMap);
@@ -143,7 +196,7 @@ unsigned int Model::TextureFromFile(const char* path)
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(false);
 
-    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
 
     if (data)
     {
@@ -167,8 +220,7 @@ unsigned int Model::TextureFromFile(const char* path)
     return textureMap;
 }
 
-
-Texture Model::TextureFromEmbeded(aiTexture* texture)
+Texture Model::TextureFromEmbeded(aiTexture *texture)
 {
     Texture processedTexture;
     unsigned int textureMap = 0;
@@ -182,7 +234,7 @@ Texture Model::TextureFromEmbeded(aiTexture* texture)
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(false);
 
-    unsigned char* data = stbi_load_from_memory(reinterpret_cast<unsigned char*>(texture->pcData), texture->mWidth, &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load_from_memory(reinterpret_cast<unsigned char *>(texture->pcData), texture->mWidth, &width, &height, &nrChannels, 0);
 
     if (data)
     {
@@ -210,3 +262,19 @@ Texture Model::TextureFromEmbeded(aiTexture* texture)
     return processedTexture;
 }
 
+std::vector<Bone> Model::getBones()
+{
+    return bones;
+}
+
+int Model::getBoneID(std::string boneName)
+{
+    for ( unsigned int i = 0; i < bones.size(); i++)
+    {
+        if (bones[i].name == boneName)
+        {
+            return i;
+        }
+    }
+    return -1;
+}

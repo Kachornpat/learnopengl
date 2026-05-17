@@ -12,6 +12,8 @@
 #include "camera.h"
 #include "mesh.h"
 #include "model.h"
+#include "animation.h"
+#include "player.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -65,6 +67,9 @@ int main()
 	std::string filename = "/home/kachornpat/Downloads/Lite Longbow Pack/Erika Archer.fbx";
 
 	Model erika = Model(filename);
+
+	Animation animation = Animation("/home/kachornpat/Downloads/Lite Longbow Pack/standing disarm bow.fbx", &erika);
+	Player player = Player(&animation);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -121,6 +126,9 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+		player.updateTime(deltaTime);
+
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
 
 		shader.use();
@@ -137,6 +145,18 @@ int main()
 		shader.setFloat("pointLight.constant", 1.0f);
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
+
+		std::vector<glm::mat4> transforms = player.getTranformations();
+		for(unsigned int i = 0; i < transforms.size(); i++)
+			shader.setMat("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+
+		// int i = 0;
+		// std::cout << "ID: " << i << std::endl;
+		// std::cout << transforms[i][0][0] << " " << transforms[i][1][0] << " " << transforms[i][2][0] << " " << transforms[i][3][0] << std::endl;
+		// std::cout << transforms[i][0][0] << " " << transforms[i][1][1] << " " << transforms[i][2][1] << " " << transforms[i][3][1] << std::endl;
+		// std::cout << transforms[i][0][0] << " " << transforms[i][1][2] << " " << transforms[i][2][2] << " " << transforms[i][3][2] << std::endl;
+		// std::cout << transforms[i][0][0] << " " << transforms[i][1][3] << " " << transforms[i][2][3] << " " << transforms[i][3][3] << std::endl;
+		// std::cout << "============================================" << std::endl;
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
