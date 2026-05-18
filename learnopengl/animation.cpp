@@ -7,10 +7,10 @@
 #include "animation.h"
 #include "helper.h"
 
-void Animation::loadAnimation(std::string path, Model *model)
+void Animation::loadAnimation(std::string path, Model* model)
 {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
 
     if (!scene || !scene->mRootNode)
     {
@@ -18,7 +18,7 @@ void Animation::loadAnimation(std::string path, Model *model)
         return;
     }
     bones = model->getBones();
-    aiAnimation *animation = scene->mAnimations[0];
+    aiAnimation* animation = scene->mAnimations[0];
     duration = animation->mDuration;
     tickPerSecond = animation->mTicksPerSecond;
     processKeyframe(animation, model);
@@ -31,11 +31,7 @@ void Animation::processKeyframe(const aiAnimation *animation, Model *model)
     {
         aiNodeAnim *channel = animation->mChannels[i];
         std::string nodeName = channel->mNodeName.C_Str();
-        // if(nodeName.find("_$AssimpFbx$_Rotation") != std::string::npos)
-        //     nodeName = nodeName.substr(0, nodeName.find("_$AssimpFbx$_Rotation"));
-        int boneID = model->getBoneID(nodeName);
-        if (boneID != -1)
-            keyframes.push_back(Keyframe(nodeName, boneID, channel));
+        keyframes.push_back(Keyframe(nodeName, model->getBoneID(nodeName), channel));
     }
 }
 
@@ -55,8 +51,11 @@ void Animation::processNode(AnimationNode &parent, const aiNode *node, Model *mo
 Keyframe* Animation::getKeyframe(std::string boneName){
     for (unsigned int i = 0; i < keyframes.size(); i++)
     {
-        if (keyframes[i].getBoneName() == boneName);
+        if (keyframes[i].getBoneName().compare(boneName) == 0)
+        {
             return &keyframes[i];
+        }
+ 
     }
     return NULL;
 }

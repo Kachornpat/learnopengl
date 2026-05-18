@@ -18,7 +18,7 @@ Keyframe::Keyframe(const std::string &name, int ID, const aiNodeAnim *channel) :
     {
         KeyRotation keyframe;
         keyframe.orientation = QuatToGLM(channel->mRotationKeys[i].mValue);
-        keyframe.timestamp = channel->mPositionKeys[i].mTime;
+        keyframe.timestamp = channel->mRotationKeys[i].mTime;
         rotations.push_back(keyframe);
     }
 
@@ -26,7 +26,7 @@ Keyframe::Keyframe(const std::string &name, int ID, const aiNodeAnim *channel) :
     {
         KeyScale keyframe;
         keyframe.scale = Vec3ToGLM(channel->mScalingKeys[i].mValue);
-        keyframe.timestamp = channel->mPositionKeys[i].mTime;
+        keyframe.timestamp = channel->mScalingKeys[i].mTime;
         scales.push_back(keyframe);
     }
 }
@@ -37,12 +37,16 @@ void Keyframe::update(float currentTime)
     glm::mat4 rotation = interpolateRotation(currentTime);
     glm::mat4 scale = interpolateScale(currentTime);
     localTransform = translation * rotation * scale;
+
 }
 
 glm::mat4 Keyframe::interpolatePosition(float currentTime)
 {
     if (positions.size() == 1)
-        return glm::translate(glm::mat4(1.0f), positions[0].position);
+    {
+        glm::mat4 trans = glm::translate(glm::mat4(1.0f), positions[0].position);
+        return trans;
+    }
     int currentKeyframe = getPositionKeyframe(currentTime);
     float factor = interpolateTime(positions[currentKeyframe].timestamp,
                                    positions[currentKeyframe + 1].timestamp,
@@ -60,7 +64,7 @@ int Keyframe::getPositionKeyframe(float time)
         if (time < positions[i + 1].timestamp)
             return i;
     }
-    return -1;
+    return positions.size() - 2;
 }
 
 glm::mat4 Keyframe::interpolateRotation(float currentTime)
@@ -88,11 +92,15 @@ int Keyframe::getRotationKeyframe(float time)
         if (time < rotations[i + 1].timestamp)
             return i; 
     }
-    return -1;
+    return rotations.size() - 2;
 }
 
 glm::mat4 Keyframe::interpolateScale(float currentTime)
 {
+    if (scales.size() == 1)
+    {
+        return glm::scale(glm::mat4(1.0f), scales[0].scale);
+    }
     int currentKeyframe = getScaleKeyframe(currentTime);
     float factor = interpolateTime(scales[currentKeyframe].timestamp,
                                    scales[currentKeyframe + 1].timestamp,
@@ -110,7 +118,7 @@ int Keyframe::getScaleKeyframe(float time)
         if (time < scales[i + 1].timestamp)
             return i;
     }
-    return -1;
+    return scales.size() - 2;
 }
 
 float Keyframe::interpolateTime(float previousTime, float nextTime, float currentTime)

@@ -271,7 +271,7 @@ int Model::getBoneID(std::string boneName)
 {
     for ( unsigned int i = 0; i < bones.size(); i++)
     {
-        if (bones[i].name == boneName)
+        if (bones[i].name.compare(boneName) == 0)
         {
             return i;
         }

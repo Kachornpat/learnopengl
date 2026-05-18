@@ -21,18 +21,25 @@ out vec2 TexCoords;
 
 void main()
 {
-	mat4 transform = mat4(1.0f);
+	vec4 total = vec4(0.0f);
+	vec3 localNormal = vec3(0.0f);
 
-	for (int i = 0; i < 65; i++)
+	for (int i = 0; i < MAX_BONES_INFLUENCE; i++)
 	{
-		if (boneIds[0] == i)
-			transform = finalBonesMatrices[boneIds[0]] * weights[0];
+		if (boneIds[i] == -1)
+			continue;
+		if (boneIds[i] >= MAX_BONES)
+		{
+			total = vec4(aPos, 1.0f);
+			break;
+		}
+		vec4 local = finalBonesMatrices[boneIds[i]] * vec4(aPos, 1.0f);
+		total += local * weights[i];
+		localNormal = mat3(finalBonesMatrices[boneIds[i]]) * aNormal;
 	}
 
-	
-
-	gl_Position = projection * view * model * transform * vec4(aPos, 1.0f);
-	FragPos = vec3(model * transform * vec4(aPos, 1.0f));
-	Normal = normalMat * aNormal;
+	gl_Position = projection * view * model * total;
+	FragPos = vec3(model * total);
+	Normal = normalMat * localNormal;
 	TexCoords = aTexCoords;
 }
