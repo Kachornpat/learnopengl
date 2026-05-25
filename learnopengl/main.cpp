@@ -59,17 +59,14 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSwapInterval(1);
+	glfwSwapInterval(2);
 	glViewport(0, 0, camera.screenX, camera.screenY);
 
 	Shader shader("shader.vs", "shader.fs");
 
-	std::string filename = "/home/kachornpat/Downloads/Lite Longbow Pack/Erika Archer.fbx";
-
-	Model erika = Model(filename);
-
-	Animation animation = Animation("/home/kachornpat/Downloads/Lite Longbow Pack/standing disarm bow.fbx", &erika);
-	Player player = Player(&animation);
+	Model erika = Model("/home/Users/kachornpat/Downloads/Lite Longbow Pack Fbx/Erika Archer.fbx");
+	Animation animation = Animation("/home/kachornpat/Downloads/Lite Longbow Pack Fbx/standing disarm bow.fbx");
+	Player player = Player(&animation, &erika);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,

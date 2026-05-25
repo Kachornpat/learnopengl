@@ -7,7 +7,7 @@
 #include "animation.h"
 #include "helper.h"
 
-void Animation::loadAnimation(std::string path, Model* model)
+void Animation::loadAnimation(std::string path)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
@@ -17,32 +17,31 @@ void Animation::loadAnimation(std::string path, Model* model)
         std::cout << "ERROR:ASSIMP::" << importer.GetErrorString() << std::endl;
         return;
     }
-    bones = model->getBones();
     aiAnimation* animation = scene->mAnimations[0];
     duration = animation->mDuration;
     tickPerSecond = animation->mTicksPerSecond;
-    processKeyframe(animation, model);
-    processNode(root, scene->mRootNode, model);
+    processKeyframe(animation);
+    processNode(root, scene->mRootNode);
 }
 
-void Animation::processKeyframe(const aiAnimation *animation, Model *model)
+void Animation::processKeyframe(const aiAnimation *animation)
 {
     for (unsigned int i = 0; i < animation->mNumChannels; i++)
     {
         aiNodeAnim *channel = animation->mChannels[i];
         std::string nodeName = channel->mNodeName.C_Str();
-        keyframes.push_back(Keyframe(nodeName, model->getBoneID(nodeName), channel));
+        keyframes.push_back(Keyframe(nodeName, channel));
     }
 }
 
-void Animation::processNode(AnimationNode &parent, const aiNode *node, Model *model)
+void Animation::processNode(AnimationNode &parent, const aiNode *node)
 {
     parent.name = node->mName.data;
     parent.transformation = Mat4ToGLM(node->mTransformation);
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         AnimationNode child;
-        processNode(child, node->mChildren[i], model);
+        processNode(child, node->mChildren[i]);
         parent.children.push_back(child);
 
     }
@@ -73,9 +72,4 @@ float Animation::getDuration()
 AnimationNode& Animation::getRootNode()
 {
     return root;
-}
-
-std::vector<Bone> Animation::getBones()
-{
-    return bones;
 }

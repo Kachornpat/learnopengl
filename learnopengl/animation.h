@@ -5,7 +5,6 @@
 
 #include <glm/glm.hpp>
 
-#include "model.h"
 #include "keyframe.h"
 
 struct AnimationNode {
@@ -18,24 +17,22 @@ struct AnimationNode {
 class Animation {
 
 public:
-    Animation(std::string path, Model* model){
-        loadAnimation(path, model);
+    Animation(std::string path){
+        loadAnimation(path);
     }
     Keyframe* getKeyframe(std::string boneName);
     int getTickPerSecond();
     float getDuration();
     AnimationNode& getRootNode();
-    std::vector<Bone> getBones();
 
 private:
-    std::vector<Bone> bones;
     float duration;
     int tickPerSecond;
     AnimationNode root;
     std::vector<Keyframe> keyframes;
-    void loadAnimation(std::string path, Model* model);
-    void processKeyframe(const aiAnimation* animation, Model* model);
-    void processNode(AnimationNode &parent, const aiNode* node, Model *model);
+    void loadAnimation(std::string path);
+    void processKeyframe(const aiAnimation* animation);
+    void processNode(AnimationNode &parent, const aiNode* node);
 };
 
 #endif

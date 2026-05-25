@@ -5,7 +5,7 @@
 #include "keyframe.h"
 #include "helper.h"
 
-Keyframe::Keyframe(const std::string &name, int ID, const aiNodeAnim *channel) : boneName(name), boneID(ID)
+Keyframe::Keyframe(const std::string &name, const aiNodeAnim *channel) : boneName(name)
 {
     for (unsigned int i = 0; i < channel->mNumPositionKeys; i++)
     {
@@ -129,10 +129,6 @@ float Keyframe::interpolateTime(float previousTime, float nextTime, float curren
     return interpolation;
 }
 
-int Keyframe::getBoneID()
-{
-    return boneID;
-}
 
 std::string Keyframe::getBoneName()
 {

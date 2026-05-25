@@ -1,9 +1,10 @@
 #include "player.h"
+#include "model.h"
 
-
-Player::Player(Animation *animation)
+Player::Player(Animation *animation, Model *model)
 {
     this->animation = animation;
+    this->model = model;
     currentTime = 0.0f;
     transformations.reserve(100);
     for (unsigned int i = 0; i < 100; i++)
@@ -26,8 +27,7 @@ void Player::calculateTransformation(const AnimationNode *node, glm::mat4 parent
     glm::mat4 nodeTransform = glm::mat4(1.0f);
 
     if (keyframe)
-    {
-    
+    {   
         keyframe->update(currentTime);
         nodeTransform = keyframe->getLocalTransform();
     }
@@ -38,16 +38,11 @@ void Player::calculateTransformation(const AnimationNode *node, glm::mat4 parent
 
     glm::mat4 globalTransformation = parentTransform * nodeTransform;
 
-    std::vector<Bone> bones = animation->getBones();
-    glm::mat4 offset;
-    for (unsigned int i = 0; i < bones.size(); i++)
+    int boneID = model->getBoneID(node->name);
+    if (boneID != -1)
     {
-        if (bones[i].name.compare(node->name) == 0)
-        {
-            offset = bones[i].offset;
-            transformations[i] = globalTransformation * offset;
-            break;
-        }
+        Bone bone = model->getBones()[boneID];
+        transformations[boneID] = globalTransformation * bone.offset;
     }
 
 

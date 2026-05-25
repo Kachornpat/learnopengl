@@ -29,14 +29,12 @@ struct KeyScale
 class Keyframe
 {
 public:
-    Keyframe(const std::string &name, int ID, const aiNodeAnim *channel);
-    int getBoneID();
+    Keyframe(const std::string &name, const aiNodeAnim *channel);
     std::string getBoneName();
     glm::mat4 getLocalTransform();
     void update(float currentTime);
 
 private:
-    int boneID;
     std::string boneName;
     glm::mat4 localTransform;
     std::vector<KeyPosition> positions;
