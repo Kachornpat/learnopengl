@@ -64,9 +64,11 @@ int main()
 
 	Shader shader("shader.vs", "shader.fs");
 
-	Model erika = Model("/home/Users/kachornpat/Downloads/Lite Longbow Pack Fbx/Erika Archer.fbx");
-	Animation animation = Animation("/home/kachornpat/Downloads/Lite Longbow Pack Fbx/standing disarm bow.fbx");
-	Player player = Player(&animation, &erika);
+	Model erika = Model("C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/Erika Archer.fbx");
+	Animation stand = Animation("C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/standing idle 01.fbx");
+	Animation walk = Animation("C:/Users/kachornpat.g/Downloads/Lite Longbow Pack Fbx/standing walk forward.fbx");
+	Player walking = Player(&walk, &erika);
+	Player standing = Player(&stand, &erika);
 
 	float light[] = {
 		-0.5, -0.5f,  0.5f,
@@ -124,7 +126,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-		player.updateTime(deltaTime);
+		walking.updateTime(deltaTime);
+		standing.updateTime(deltaTime);
 
 		glm::vec3 lightPos(2.0f * cos(glfwGetTime()), 2.0f, 2.0f * sin(glfwGetTime()));
 
@@ -143,9 +146,15 @@ int main()
 		shader.setFloat("pointLight.linear", 0.09f);
 		shader.setFloat("pointLight.quadratic", 0.032f);
 
-		std::vector<glm::mat4> transforms = player.getTranformations();
-		for(unsigned int i = 0; i < transforms.size(); i++)
-			shader.setMat("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+		std::vector<glm::mat4> walkingTransforms = walking.getTranformations();
+		std::vector<glm::mat4> standingTransforms = standing.getTranformations();
+		for (unsigned int i = 0; i < walkingTransforms.size(); i++)
+		{
+			float factorA = abs((float)sin(glfwGetTime()));
+			float factorB = 1 - factorA;
+			glm::mat4 transform = (factorA * walkingTransforms[i]) + (factorB * standingTransforms[i]);
+			shader.setMat("finalBonesMatrices[" + std::to_string(i) + "]", transform);
+		}
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
